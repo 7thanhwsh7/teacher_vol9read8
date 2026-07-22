@@ -1,0 +1,3181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G.EDU — Teacher Reading Correction Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --cream:        #fdfcfb;
+  --cream-deep:   #f5f2ed;
+  --cream-border: #e8e2d9;
+  --ink:          #1a1714;
+  --ink-soft:     #4a4540;
+  --ink-muted:    #8a8178;
+  --gold:         #D4AF37;
+  --gold-light:   #F0D060;
+  --gold-pale:    #fdf6dc;
+  --gold-border:  #e8c84a;
+  --navy:         #1b2a4a;
+  --navy-mid:     #253a63;
+  --highlight:    #fff176;
+  --highlight-bg: #fffde7;
+  --success:      #2e7d32;
+  --success-bg:   #f1f8e9;
+  --evidence-bg:  #e8f4fd;
+  --evidence-border: #90caf9;
+  --shadow-sm:    0 1px 3px rgba(26,23,20,0.08);
+  --shadow-md:    0 4px 16px rgba(26,23,20,0.10);
+  --shadow-lg:    0 8px 32px rgba(26,23,20,0.13);
+  --radius-sm:    6px;
+  --radius-md:    12px;
+  --radius-lg:    18px;
+  --sidebar-w:    72px;
+  --font-body:    'Be Vietnam Pro', sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════ */
+#app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--navy);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  box-shadow: 2px 0 12px rgba(0,0,0,0.18);
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 22px 20px 16px;
+  border-bottom: 1px solid rgba(212,175,55,0.25);
+  flex-shrink: 0;
+}
+
+.logo-mark {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
+
+.logo-sub {
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(212,175,55,0.6);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.logo-test-name {
+  margin-top: 10px;
+  padding: 6px 10px;
+  background: rgba(212,175,55,0.12);
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 6px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--gold-light);
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+.sidebar-section {
+  padding: 14px 16px 10px;
+  flex-shrink: 0;
+}
+
+.sidebar-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 8px;
+}
+
+/* Passage selector */
+.passage-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px 0;
+  flex-shrink: 0;
+}
+
+.passage-tab {
+  flex: 1;
+  padding: 7px 0;
+  border: 1px solid rgba(212,175,55,0.3);
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.03em;
+}
+
+.passage-tab:hover {
+  background: rgba(212,175,55,0.12);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.5);
+}
+
+.passage-tab.active {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--navy);
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(212,175,55,0.35);
+}
+
+/* Question map */
+.q-map-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 16px 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212,175,55,0.2) transparent;
+}
+
+.q-map-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.q-chip {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.q-chip:hover {
+  background: rgba(212,175,55,0.15);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.3);
+}
+
+.q-chip.answered {
+  background: rgba(212,175,55,0.18);
+  color: var(--gold-light);
+  border-color: rgba(212,175,55,0.35);
+}
+
+.q-chip.checked {
+  background: rgba(46,125,50,0.25);
+  color: #a5d6a7;
+  border-color: rgba(46,125,50,0.4);
+}
+
+/* Sidebar actions */
+.sidebar-actions {
+  padding: 12px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(212,175,55,0.15);
+}
+
+.btn-sidebar {
+  width: 100%;
+  padding: 9px 14px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  border: 1px solid;
+}
+
+.btn-show-keys {
+  background: var(--gold);
+  color: var(--navy);
+  border-color: var(--gold);
+}
+
+.btn-show-keys:hover {
+  background: var(--gold-light);
+  box-shadow: 0 3px 12px rgba(212,175,55,0.4);
+}
+
+.btn-clear-hl {
+  background: transparent;
+  color: rgba(255,255,255,0.55);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.btn-clear-hl:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border-color: rgba(255,255,255,0.35);
+}
+
+/* ── MAIN CONTENT ── */
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* Top bar */
+#topbar {
+  height: 52px;
+  min-height: 52px;
+  background: var(--cream);
+  border-bottom: 1px solid var(--cream-border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--navy);
+  font-style: italic;
+}
+
+.topbar-meta {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.topbar-passage-badge {
+  margin-left: auto;
+  background: var(--gold-pale);
+  border: 1px solid var(--gold-border);
+  color: #8a6b00;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+/* Split pane */
+#split-container {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Left: Passage */
+#passage-pane {
+  width: 50%;
+  min-width: 280px;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background: var(--cream);
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-border) transparent;
+}
+
+/* Splitter */
+#splitter {
+  width: 5px;
+  background: var(--cream-border);
+  cursor: col-resize;
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.2s;
+  user-select: none;
+}
+
+#splitter:hover, #splitter.dragging {
+  background: var(--gold);
+}
+
+#splitter::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px;
+  height: 40px;
+  background: rgba(212,175,55,0.5);
+  border-radius: 4px;
+}
+
+/* Right: Questions */
+#questions-pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background: var(--cream-deep);
+  min-width: 280px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cream-border) transparent;
+}
+
+/* ═══════════════════════════════════════════
+   PASSAGE STYLES
+═══════════════════════════════════════════ */
+.passage-header {
+  margin-bottom: 20px;
+}
+
+.passage-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.passage-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--navy);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.passage-source {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+
+.passage-divider {
+  width: 48px;
+  height: 2px;
+  background: var(--gold);
+  margin: 14px 0;
+  border-radius: 2px;
+}
+
+.passage-body {
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--ink);
+  user-select: text;
+}
+
+.passage-body p {
+  margin-bottom: 14px;
+}
+
+.passage-body .para-label {
+  font-weight: 700;
+  color: var(--navy);
+  font-size: 12px;
+}
+
+mark.hl-yellow {
+  background: var(--highlight);
+  border-radius: 2px;
+  padding: 0 1px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+mark.hl-yellow:hover {
+  background: #ffee33;
+  text-decoration: line-through;
+  text-decoration-color: rgba(0,0,0,0.3);
+}
+
+/* Highlight toolbar */
+#hl-toolbar {
+  position: fixed;
+  display: none;
+  background: var(--navy);
+  border-radius: 20px;
+  padding: 5px 8px;
+  gap: 4px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28);
+  z-index: 2000;
+  align-items: center;
+  pointer-events: auto;
+  transform: translateX(-50%);
+}
+
+#hl-toolbar.visible {
+  display: flex;
+}
+
+/* small arrow under toolbar */
+#hl-toolbar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--navy);
+}
+
+.hl-btn {
+  padding: 5px 14px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.hl-btn:hover { background: var(--gold-light); }
+
+/* ═══════════════════════════════════════════
+   QUESTION GROUP STYLES
+═══════════════════════════════════════════ */
+.q-group {
+  margin-bottom: 28px;
+}
+
+.q-group-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.q-group-num {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.q-group-instruction {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  background: rgba(212,175,55,0.07);
+  border-left: 3px solid var(--gold);
+  padding: 8px 12px;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: 14px;
+}
+
+/* Individual question card */
+.q-card {
+  background: var(--cream);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s;
+}
+
+.q-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.q-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.q-num-badge {
+  min-width: 26px;
+  height: 26px;
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.q-content {
+  flex: 1;
+}
+
+.q-stem {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* MCQ options */
+.q-options {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.q-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 12px;
+}
+
+.q-option:hover {
+  background: var(--gold-pale);
+  border-color: var(--gold-border);
+}
+
+.q-option.selected {
+  background: var(--gold-pale);
+  border-color: var(--gold);
+}
+
+.opt-letter {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 1px solid var(--cream-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-muted);
+  flex-shrink: 0;
+}
+
+.q-option.selected .opt-letter {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: white;
+}
+
+/* Teacher answer input */
+.teacher-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.teacher-input {
+  flex: 1;
+  padding: 7px 12px;
+  background: white;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+  transition: border 0.15s;
+}
+
+.teacher-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
+}
+
+.btn-check {
+  padding: 7px 16px;
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+
+.btn-check:hover {
+  background: var(--navy-mid);
+  box-shadow: 0 3px 10px rgba(27,42,74,0.3);
+}
+
+
+/* Completion and guided-answer layouts */
+.cloze-sheet {
+  background: #fff;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+}
+.cloze-section { margin: 0 0 16px; }
+.cloze-section:last-of-type { margin-bottom: 10px; }
+.cloze-heading {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-style: italic;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.cloze-row {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.65;
+  padding-left: 14px;
+  position: relative;
+}
+.cloze-row::before { content: '•'; position: absolute; left: 0; color: var(--gold); }
+.cloze-number { font-weight: 700; color: var(--navy); margin-right: 4px; }
+.cloze-input {
+  width: 126px;
+  min-width: 78px;
+  border: 0;
+  border-bottom: 2px solid var(--gold);
+  background: var(--gold-pale);
+  border-radius: 4px 4px 0 0;
+  padding: 3px 7px;
+  font: inherit;
+  color: var(--ink);
+  outline: none;
+  vertical-align: baseline;
+}
+.cloze-input:focus { box-shadow: 0 2px 0 var(--navy); }
+.cloze-input.is-correct {
+  border-bottom-color: #2e7d32;
+  background: #edf7ed;
+  box-shadow: inset 0 0 0 1px rgba(46,125,50,.15);
+}
+.cloze-input.is-wrong {
+  border-bottom-color: #c62828;
+  background: #fff1f1;
+  box-shadow: inset 0 0 0 1px rgba(198,40,40,.15);
+}
+.cloze-sentence { padding: 8px 0; font-size: 13px; line-height: 1.7; border-bottom: 1px solid var(--cream-border); }
+.cloze-sentence:last-of-type { border-bottom: 0; }
+.cloze-sentence .cloze-input { width: 118px; }
+.inline-cloze { display: inline-flex; align-items: center; gap: 6px; vertical-align: baseline; }
+.inline-cloze-num { font-size: 11px; font-weight: 700; color: var(--ink-muted); }
+.group-check-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+.completion-review {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--cream-border);
+}
+.completion-review-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 10px;
+}
+.completion-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.completion-chip {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--cream-border);
+  background: #fff;
+  color: var(--navy);
+  font: 700 13px var(--font-body);
+  cursor: pointer;
+  transition: all .15s;
+}
+.completion-chip:hover,
+.completion-chip.active {
+  background: var(--gold-pale);
+  border-color: var(--gold);
+}
+.completion-chip.checked {
+  box-shadow: inset 0 0 0 2px rgba(212,175,55,.25);
+}
+.completion-panel-stack .correction-panel {
+  margin-top: 0;
+}
+.option-directory {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+  background: var(--cream-deep);
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.option-directory span { white-space: nowrap; }
+.option-directory b { color: var(--navy); margin-right: 3px; }
+.answer-dropdown {
+  width: 100%;
+  max-width: 410px;
+  padding: 8px 10px;
+  margin: 2px 0 8px;
+  background: #fff;
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font: 12px var(--font-body);
+  outline: none;
+}
+.answer-dropdown:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(212,175,55,.12); }
+.binary-choices { display: flex; gap: 7px; flex-wrap: wrap; margin: 4px 0 8px; }
+.binary-choice {
+  padding: 7px 10px;
+  background: #fff;
+  border: 1px solid var(--cream-border);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  font: 700 10px var(--font-body);
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+.binary-choice:hover, .binary-choice.selected { background: var(--gold-pale); border-color: var(--gold); color: var(--navy); }
+@media (max-width: 600px) { .cloze-sheet { padding: 14px; } .cloze-input { width: 96px; } .option-directory { display: block; } .option-directory span { display: inline-block; margin: 0 10px 5px 0; } }
+
+/* Correction panel */
+.correction-panel {
+  display: none;
+  margin-top: 10px;
+  border-top: 1px dashed var(--cream-border);
+  padding-top: 10px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.correction-panel.open { display: flex; }
+
+.correct-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+
+.correct-row.key-row {
+  background: var(--success-bg);
+  border: 1px solid #c8e6c9;
+}
+
+.correct-row.explain-row {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+}
+
+.correct-row.evidence-row {
+  background: var(--evidence-bg);
+  border: 1px solid var(--evidence-border);
+  padding: 0;
+  overflow: hidden;
+}
+
+.evidence-row-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.evidence-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px 6px;
+}
+
+.btn-view-evidence {
+  width: 100%;
+  padding: 7px 12px;
+  background: rgba(144,202,249,0.18);
+  border: none;
+  border-top: 1px solid var(--evidence-border);
+  color: #1565c0;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.btn-view-evidence:hover {
+  background: rgba(144,202,249,0.35);
+  color: #0d47a1;
+}
+
+.btn-view-evidence.active {
+  background: #1565c0;
+  color: white;
+}
+
+/* Flash animation for evidence in passage */
+@keyframes evidenceFlash {
+  0%   { background: #ffeb3b; box-shadow: 0 0 0 3px #ffeb3b; }
+  30%  { background: #fff176; box-shadow: 0 0 0 5px rgba(255,235,59,0.5); }
+  70%  { background: #fff9c4; box-shadow: 0 0 0 3px rgba(255,235,59,0.2); }
+  100% { background: #fff59d; box-shadow: none; }
+}
+
+.evidence-flash {
+  animation: evidenceFlash 2s ease-out forwards;
+  border-radius: 3px;
+}
+
+.cr-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.cr-label {
+  font-weight: 700;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+.cr-content {
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.cr-content strong { color: var(--ink); }
+
+/* Key highlight in evidence */
+.evidence-keyword {
+  background: var(--highlight);
+  border-radius: 2px;
+  padding: 0 2px;
+  font-weight: 600;
+}
+
+/* Show all keys panel */
+.all-keys-panel {
+  display: none;
+  position: fixed;
+  top: 52px;
+  right: 0;
+  width: 320px;
+  height: calc(100vh - 52px);
+  background: white;
+  border-left: 1px solid var(--cream-border);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+  z-index: 100;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.all-keys-panel.open { display: block; }
+
+.all-keys-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gold);
+}
+
+.all-keys-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.btn-close-keys {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--cream-border);
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: var(--ink-muted);
+  transition: all 0.15s;
+}
+
+.btn-close-keys:hover {
+  background: var(--cream-deep);
+  color: var(--ink);
+}
+
+.key-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.key-table tr {
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.key-table tr:last-child { border-bottom: none; }
+
+.key-table td {
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.key-table .kt-num {
+  width: 36px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.key-table .kt-key {
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.key-table .kt-type {
+  font-size: 10px;
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+.key-table tr:nth-child(even) td { background: var(--cream-deep); }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--cream-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #c8bfb0; }
+
+/* ── SIDEBAR VIEWS ── */
+#sidebar-view-questions {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+#sidebar-view-questions.hidden { display: none; }
+
+#sidebar-view-report {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+  gap: 10px;
+  min-height: 0;
+}
+
+#sidebar-view-report.visible { display: flex; }
+
+#report-content {
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#report-content.visible { display: flex; }
+
+/* ── SIDEBAR NAV TABS ── */
+.sidebar-nav {
+  display: flex;
+  gap: 0;
+  padding: 10px 14px 0;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.snav-tab {
+  flex: 1;
+  padding: 8px 4px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: rgba(255,255,255,0.4);
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.snav-tab:hover { color: rgba(255,255,255,0.75); }
+
+.snav-tab.active {
+  color: var(--gold-light);
+  border-bottom-color: var(--gold);
+}
+
+/* ── REPORT (sidebar view) ── */
+#sidebar-view-report {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px 20px;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.report-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 12px;
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.report-hint-icon { font-size: 28px; }
+
+.report-group-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.report-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(255,255,255,0.06);
+}
+
+.report-group-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.05em;
+}
+
+.report-group-score {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.report-group-score.good  { background: rgba(76,175,80,0.25); color: #a5d6a7; }
+.report-group-score.mid   { background: rgba(255,193,7,0.2);  color: #fff176; }
+.report-group-score.bad   { background: rgba(244,67,54,0.2);  color: #ef9a9a; }
+
+.report-q-list {
+  padding: 6px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-q-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: rgba(255,255,255,0.55);
+}
+
+.rq-num {
+  width: 20px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.4);
+}
+
+.rq-status { font-size: 12px; }
+
+.rq-diag {
+  flex: 1;
+  font-size: 10px;
+  color: rgba(255,255,255,0.45);
+  font-style: italic;
+}
+
+.report-summary-box {
+  background: rgba(212,175,55,0.1);
+  border: 1px solid rgba(212,175,55,0.25);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-top: 4px;
+}
+
+.report-summary-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.report-focus-item {
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  line-height: 1.4;
+}
+
+.report-focus-item:last-child { border-bottom: none; }
+
+.report-focus-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--gold);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.btn-export-report {
+  width: 100%;
+  padding: 9px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.btn-export-report:hover { background: var(--gold-light); }
+
+/* ── QUESTION TYPE BADGE (clickable) ── */
+.q-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  font-style: italic;
+  color: var(--navy);
+  cursor: pointer;
+  border-bottom: 1px dashed var(--navy);
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.q-type-badge:hover {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.q-type-badge .tip-icon {
+  font-size: 12px;
+  font-style: normal;
+  opacity: 0.6;
+}
+
+/* ── TIPS PANEL (slide-in từ phải) ── */
+.tips-panel {
+  position: fixed;
+  top: 52px;
+  right: -420px;
+  width: 400px;
+  height: calc(100vh - 52px);
+  background: white;
+  border-left: 1px solid var(--cream-border);
+  box-shadow: -6px 0 30px rgba(0,0,0,0.12);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+
+.tips-panel.open { right: 0; }
+
+.tips-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 2px solid var(--gold);
+  flex-shrink: 0;
+  background: var(--navy);
+}
+
+.tips-panel-eyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(212,175,55,0.7);
+  margin-bottom: 4px;
+}
+
+.tips-panel-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: white;
+  font-style: italic;
+}
+
+.tips-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Tips content blocks */
+.tips-section {
+  margin-bottom: 20px;
+}
+
+.tips-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--cream-border);
+}
+
+.tips-overview {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.7;
+  background: var(--cream-deep);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-left: 3px solid var(--navy);
+}
+
+.tips-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+
+.tips-item-num {
+  width: 22px;
+  height: 22px;
+  background: var(--navy);
+  color: var(--gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tips-item-text {
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.6;
+}
+
+.tips-item-text strong { color: var(--navy); }
+
+.tips-trap {
+  display: flex;
+  gap: 8px;
+  background: #fff3e0;
+  border: 1px solid #ffcc02;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #7b4a00;
+  line-height: 1.5;
+  align-items: flex-start;
+}
+
+.tips-trap-icon { flex-shrink: 0; font-size: 14px; }
+
+.tips-band {
+  display: flex;
+  gap: 8px;
+  background: linear-gradient(135deg, #f3e5f5, #e8f5e9);
+  border: 1px solid #ce93d8;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: var(--ink);
+  line-height: 1.5;
+  align-items: flex-start;
+}
+
+.tips-band-icon { flex-shrink: 0; font-size: 14px; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-muted);
+}
+
+.empty-state-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.empty-state-sub { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Highlight toolbar (floating) -->
+<div id="hl-toolbar">
+  <button class="hl-btn" onclick="applyHighlight()">✏️ Highlight</button>
+</div>
+
+<!-- All Keys Panel (slide-in) -->
+<div id="all-keys-panel" class="all-keys-panel">
+  <div class="all-keys-header">
+    <span class="all-keys-title">Answer Key — All 40 Qs</span>
+    <button class="btn-close-keys" onclick="toggleAllKeys(false)">✕</button>
+  </div>
+  <table class="key-table" id="key-table-body"></table>
+</div>
+
+<!-- Tips Panel (slide-in từ phải, click vào question type badge) -->
+<div id="tips-panel" class="tips-panel">
+  <div class="tips-panel-header">
+    <div>
+      <div class="tips-panel-eyebrow">Hướng dẫn dạng bài</div>
+      <div class="tips-panel-title" id="tips-panel-title">—</div>
+    </div>
+    <button class="btn-close-keys" onclick="closeTipsPanel()">✕</button>
+  </div>
+  <div id="tips-panel-body" class="tips-panel-body"></div>
+</div>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">G.EDU</div>
+      <div class="logo-sub">Teacher Edition · Reading</div>
+      <div class="logo-test-name" id="sidebar-test-name">—</div>
+    </div>
+
+    <!-- Sidebar Nav -->
+    <div class="sidebar-nav">
+      <button class="snav-tab active" id="snav-questions" onclick="switchSidebarView('questions')">📋 Câu hỏi</button>
+      <button class="snav-tab" id="snav-report" onclick="switchSidebarView('report')">📊 Báo cáo</button>
+    </div>
+
+    <!-- VIEW: Questions -->
+    <div id="sidebar-view-questions">
+    <!-- Passage Tabs -->
+    <div class="passage-tabs">
+      <button class="passage-tab active" onclick="switchPassage(0)" id="tab-0">P1</button>
+      <button class="passage-tab" onclick="switchPassage(1)" id="tab-1">P2</button>
+      <button class="passage-tab" onclick="switchPassage(2)" id="tab-2">P3</button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Question Map</div>
+    </div>
+    <div class="q-map-wrap">
+      <div class="q-map-grid" id="q-map"></div>
+    </div>
+
+    <div class="sidebar-actions">
+      <button class="btn-sidebar btn-show-keys" onclick="toggleAllKeys(true)">📋 Show All Keys</button>
+      <button class="btn-sidebar btn-clear-hl" onclick="clearAllHighlights()">🧹 Clear Highlights</button>
+    </div>
+    </div><!-- end sidebar-view-questions -->
+
+    <!-- VIEW: Báo cáo -->
+    <div id="sidebar-view-report">
+      <div class="report-hint" id="report-hint">
+        <div class="report-hint-icon">📝</div>
+        <div>Check các câu hỏi bên phải để tạo báo cáo phân tích lỗi cho học sinh.</div>
+      </div>
+      <div id="report-content"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- Topbar -->
+    <div id="topbar">
+      <span class="topbar-title">Reading Correction Tool</span>
+      <span class="topbar-meta" id="topbar-meta">IELTS Academic — Full Test</span>
+      <span class="topbar-passage-badge" id="passage-badge">Passage 1</span>
+    </div>
+
+    <!-- Split Container -->
+    <div id="split-container">
+      <!-- Left: Passage -->
+      <div id="passage-pane">
+        <div id="passage-content">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- Splitter -->
+      <div id="splitter"></div>
+
+      <!-- Right: Questions -->
+      <div id="questions-pane">
+        <div id="questions-content">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   TEACHER_DATA — JSON TEMPLATE
+   Điền dữ liệu vào đây để tạo bài test. Không sửa code bên dưới.
+   ───────────────────────────────────────────────────────────────
+   SCHEMA:
+   {
+     meta: {
+       title: string,        // Tên bộ đề, hiển thị ở topbar
+       testName: string,     // Tên test cụ thể, hiển thị ở sidebar (vd: "Reading Test 3")
+       totalQuestions: number // Tổng số câu (thường 40)
+     },
+     passages: [
+       {
+         id: number,         // 0, 1, 2 (tương ứng P1, P2, P3)
+         title: string,      // Tiêu đề bài đọc
+         source: string,     // Nguồn bài đọc (vd: "Adapted from Nature, 2023")
+         qRange: [start, end], // Phạm vi câu hỏi (vd: [1, 13])
+         paragraphs: [
+           {
+             label: string,  // Nhãn đoạn: "A", "B", "C"...
+             text: string    // Nội dung đoạn văn
+           }
+         ]
+       }
+     ],
+     questions: [
+       {
+         passageId: number,  // 0, 1, hoặc 2
+         groupId: string,    // ID nhóm, vd: "P1G1"
+         type: string,       // Loại câu: "TRUE/FALSE/NOT GIVEN" | "Multiple Choice" |
+                             //   "Short Answer Questions" | "Matching Headings" |
+                             //   "Matching Information" | "Summary Completion"
+         instruction: string, // Hướng dẫn làm bài (tiếng Anh, như đề IELTS)
+         items: [
+           {
+             id: number,     // Số thứ tự câu (1–40, liên tục)
+             stem: string,   // Nội dung câu hỏi / câu phát biểu
+             options: [      // CHỈ dùng cho Multiple Choice
+               "A. ...",     // Format: "A. nội dung"
+               "B. ...",
+               "C. ...",
+               "D. ..."
+             ],
+             key: string,    // Đáp án đúng. MCQ: "A"/"B"/"C"/"D". T/F/NG: "TRUE"/"FALSE"/"NOT GIVEN"
+                             // Short Answer: từ/cụm từ trích từ bài. Nhiều đáp án: "ans1 / ans2"
+             explanation: string, // Giải thích bằng tiếng Việt
+             evidence: string     // Câu/cụm từ trích nguyên văn từ bài làm evidence
+           }
+         ]
+       }
+     ]
+   }
+═══════════════════════════════════════════════════════════════ */
+const TEACHER_DATA = {
+  "meta": {
+    "title": "IELTS Academic Reading",
+    "testName": "TEST 8",
+    "totalQuestions": 40
+  },
+  "passages": [
+    {
+      "id": 0,
+      "title": "Australia's Airborne Dentists",
+      "source": "IELTS Academic Reading Practice",
+      "qRange": [
+        1,
+        13
+      ],
+      "paragraphs": [
+        {
+          "label": "",
+          "text": "Australians living or traveling in rural and remote areas can face particular difficulties when they need medical care. Hundreds of kilometres from major cities and many hours by road from the closest hospital or clinic, some rural Australians do not have easy access to doctors, nurses and dentists."
+        },
+        {
+          "label": "",
+          "text": "Organisations such as the Royal Flying Doctor Service (RFDS) have been established to bring health services to outback Australian communities. The RFDS provides free medical care to people who live, work or travel in remote and regional parts of Australia. This non-profit organisation is the oldest and largest airborne health service of its kind in the world, and since 1928 it has used small planes to reach Australia's most far-away communities."
+        },
+        {
+          "label": "",
+          "text": "In recent years, the RFDS has also started to fly dentists to regional Australia. As well as offering mobile dental clinics, the RFDS offers a range of preventative and educational services. Looking after the teeth of people in remote areas presents special challenges. These include providing care to disparate communities with no established dental facilities, and dealing with higher incidences of other diseases which are linked to, or caused by poor dental health."
+        },
+        {
+          "label": "",
+          "text": "People in remote areas have very infrequent visits by health staff. RFDS dentists might only visit a community once every few months, or sometimes once per year. Because of infrequent dentist visits, patients in these areas often need to put up with their dental problems before they can get treatment; consequently, people in remote areas are more likely to have tooth decay (the blackening and deterioration of teeth) and develop gum and other mouth diseases."
+        },
+        {
+          "label": "",
+          "text": "In some locations that the RFDS visits, there are no suitable dental facilities, so dentists have to bring everything with them. This includes drills, dentists' chairs, portable X-ray machines, and computers for keeping track of patients' treatments. Equipment can weigh up to 100 kilograms, and since the small planes that transport dentists have limited space, dentists cannot always bring everything that they need."
+        },
+        {
+          "label": "",
+          "text": "While dentists in town or city centres can specialise in certain types of treatment, RFDS dentists need to be 'all-rounders'. They need to be able to do all kinds of dental procedures, as they don't have the ability to refer patients to more specialised dentists. Even with their broad experience, there are some services that are particularly challenging for RFDS dentists. For example, dentures (artificial teeth) can be very difficult to provide, as they need to be the right shape and size for the patient, and this requires many visits over a long period of time. As a result, it is not practical to make dentures available."
+        },
+        {
+          "label": "",
+          "text": "Some chronic illnesses are more common in remote communities than in the rest of Australia. These illnesses can in turn lead to a lowered resistance to infection, including gum and other oral infections. As a result, people in outback Australian communities are more likely to experience oral health problems than city folk, and this poses extra challenges for both the dentists and the doctors of the RFDS."
+        },
+        {
+          "label": "",
+          "text": "Because there aren't a lot of dental services in remote areas, people living in these areas also receive less education about good dental hygiene than their city counterparts do. Australians in very remote communities might not be aware of things that people in cities take for granted, such as the importance of daily tooth brushing. Also, basic dental hygiene items such as toothpaste and toothbrushes can be more expensive in outback areas. Many people are on low incomes, meaning they have extra difficulty affording these products. If this is the case, the RFDS supplies these."
+        },
+        {
+          "label": "",
+          "text": "As well as treating patients, RFDS dentists try to focus on preventative oral health and educate their patients on good oral hygiene, such as tooth brushing and flossing. The RFDS also provides mouthguards for young sports players. Playing contact sports, such as rugby league or Australian rules football, can damage young people's teeth, so mouthguards provide protection which prevents accidental injuries."
+        },
+        {
+          "label": "",
+          "text": "Adding fluoride to water supplies has been proven to reduce the incidence of tooth decay in many parts of the world. City dwellers in Australia use water supplies that have been fluoridated, and their rates of tooth decay are lower because of this. In remote areas, it is not practical to fluoridate drinking water supplies, and so people living in these areas are more subject to tooth decay. As a result, it is particularly important that people living in areas without fluoridated water pay special attention to regular brushing of their teeth with fluoridated toothpaste."
+        },
+        {
+          "label": "",
+          "text": "Despite many challenges, the RFDS continues to offer much-needed dental and medical support. Its presence in isolated communities greatly improves the quality of dental health, and supports important oral hygiene and health initiatives."
+        }
+      ]
+    },
+    {
+      "id": 1,
+      "title": "Public art programs: research update",
+      "source": "IELTS Academic Reading Practice",
+      "qRange": [
+        14,
+        26
+      ],
+      "paragraphs": [
+        {
+          "label": "",
+          "text": "Researchers agree that art participation is an important leisure pursuit, with benefits not only to the individual, but also to the community. Art participation can be active, where people create or perform the art, or passive, as is the case when an audience views a performance or a person visits a gallery."
+        },
+        {
+          "label": "A",
+          "text": "Researcher Howard Spector suggests that active art experiences benefit all age groups by providing individuals with the means to freely and creatively express themselves. Self-expression, in turn, promotes individuality, bolsters self-confidence and improves motivation and attitudes towards academic performance. Both active and passive art experiences can provide the benefits of discovery, stimulation and relaxation (Oliphant 2000). Furthermore, people’s participation in art enhances their development and expands their thoughts about culture. In short, art can make individuals more socially conscious."
+        },
+        {
+          "label": "B",
+          "text": "Communities committed to providing opportunities for experiencing art are considered more livable because they are attractive to businesses and industry and they offer a higher quality of life for residents (Riley 2002). Tourism is strongly linked to art; art is believed to stimulate tourism in a community, and vice versa. Art-related tourism generates tourists and revenue, attracts high-income consumers, extends the tourist season and is a \"green\" form of the industry (Hughes 2000). Revitalization efforts have increased in many cities because of the strong presence of art opportunities. Art programs can be highly effective in reducing community problems related to delinquent behavior and truancy in youth (Spector 2000). The Philadelphia Department of Recreation Mural Arts Program (MAP) is one such program. It began in the early 1980s when the city undertook to remove graffiti in the city while creating a positive, productive and creative outlet for adjudicated graffiti artists, as they used their talents to beautify public spaces through the creation of murals, instilling a sense of pride, excellence, diligence and civic responsibility."
+        },
+        {
+          "label": "C",
+          "text": "In recognition of these and other benefits, communities are finding many ways to ensure that the public is provided with opportunities to experience art. Public art programs are one way. These programs are typically administered by government, which commissions or mandates works of art for display in public spaces. Public art works can include street furniture, decorations, paving and landmarks, and may take on many forms, including sculpture, decorative ironwork, mosaic flooring and murals. The primary purpose of public art is to bring art into everyday life, to energize public spaces and to arouse society's thinking and imagination."
+        },
+        {
+          "label": "D",
+          "text": "Despite the significant benefits that art participation can offer to individuals and communities, only 35 percent of the American adult population visit museums or galleries at least once during the year, and only about 25 percent attend a live performance (Bradshaw 1998). Even fewer (14 percent) participate directly in photography, painting, drawing, sculpting, dance (other than ballet), creative writing or classical music. If art experiences are so beneficial, why aren't more people participating? To help researchers shed light on this question, the RAND Corporation, a nonprofit institution that helps improve policy and decision-making through objective research and analysis, developed \"A Behavior Model of the Participant Decision\", which can be used to investigate people's inclinations about participating in an art activity (Yoshitomi 2000). According to Yoshitomi, each person has a disposition related to his or her interest in engaging in an art activity; a person's disposition is based on sociodemographic characteristics, social or cultural identity, personality and previous experience. The RAND model clusters participants into three groups according to their disposition toward art participation: those disinclined to participate; those inclined to participate; and those currently participating."
+        },
+        {
+          "label": "E",
+          "text": "The RAND findings reveal that the disinclined perceive themselves as being uncomfortable or unfamiliar with art. This disposition might occur among people who do not value art and who have not received art education, or who perceive themselves as unsophisticated or lacking skill to participate. The inclined are interested in participating, but may be constrained by particular barriers such as cost, time, and proper attire. Current participants are those who are involved, and influence or encourage others to participate. Researchers suggest that a strong relationship exists between childhood and adult art participation rates. Individuals with a greater number of childhood art experiences are more likely to have higher rates of participation as adults. Although 90 percent of Americans believe art instruction is important for children and should be offered in schools, almost 40 percent of schools either offer no art instruction or have art instructors with no formal art training."
+        },
+        {
+          "label": "F",
+          "text": "One recreation organization working to make sure children get exposed to art is the Boys and Girls Clubs of America, which offer two innovative programs: The National Photography Program and the National Fine Arts Exhibit. Both are designed to get children excited about art. The photography program promotes new art that is technologically produced, including video and computer graphics, but primarily focuses on photography. The program provides club members with the opportunity to achieve personal growth and receive artistic recognition through instruction in photography. Participants also display their work at local, regional and national photography contests. The second program is the Fine Arts Exhibit. This encourages artistic expression, creativity, cultural appreciation and the development of artistic skills through classes, special events, exhibits and competitions. It allows participants to explore a variety of mediums, including drawing, painting, print making, collage and sculpture."
+        },
+        {
+          "label": "",
+          "text": "Because art experiences provide so many important benefits to individuals and communities, it is important for community programs to facilitate opportunities and provide encouragement to increase participation in a variety of programs."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "200 Years of Australian Landscapes at the Royal Academy in London",
+      "source": "IELTS Academic Reading Practice",
+      "qRange": [
+        27,
+        40
+      ],
+      "paragraphs": [
+        {
+          "label": "A",
+          "text": "For the casual viewer, the exhibition of landscapes, Australia, selected by the Royal Academy of Art will be a spectacular guide through Australian art history. Included in the exhibition are a range of artists and styles, dating from the earliest days of colonial art and progressing through expressionism and modernism to the artists of the 20th century, culminating with the current generation of Australian artists. It is hardly surprising, then, that this results in a flexible, wide-ranging notion of landscape."
+        },
+        {
+          "label": "B",
+          "text": "But this landmark exhibition gives rise to some questions, and perhaps problems, regarding Britain’s relationship with its former colony. By choosing a style of painting at which British artists excel, the Academy could be seen as inviting criticism that hints at a telling attitude towards art by comparison. But it is the very theme of landscape painting that makes this a controversial selection. To consider if condescending is perhaps too strong, but for Joanna Mendelssohn, Australian critic and Associate Professor at the University of NSW’s College of Fine Arts (COFA), there is a suggestion that British artistic values have directed this exhibition, rather than allowing Australia the freedom to demonstrate its maturity."
+        },
+        {
+          "label": "C",
+          "text": "What Mendelssohn found surprising about the exhibition was the underlying rules for the selection of works seemed to have been so conservative. Since the landscape is a very strong British artistic theme, it appeared to her that when the British looked to the art of a former colony, there was a tendency for them to think that those colonies would continue to be like the British themselves. In reviewing Australian art, the British insisted on looking at the genre of landscape painting."
+        },
+        {
+          "label": "D",
+          "text": "Because of colonial ties, it was inevitable during Australian art’s formative years that it would reflect Britain’s devotion to the beloved landscape before its own character and idiosyncrasies took shape. And while Mendelssohn’s concern over the exhibition’s conventional selection is valid, the Academy is nevertheless embracing the peculiarities of Australian art from the mid-19th century onward, albeit within the boundaries of landscape."
+        },
+        {
+          "label": "E",
+          "text": "Australia is curated by Kathleen Soriano, director of exhibitions at the Royal Academy. ‘Certainly the influence of English, French or German art is much more evident in the early periods, in the early 1800s to mid-1800s,’ she says. ‘What I wanted to show was how Australian art develops a real distinctiveness, associated with the landscape and the light.’"
+        },
+        {
+          "label": "F",
+          "text": "The fusion of ‘tradition’ of the European kind with something more specifically Australian, and often personal, is crucial to the exhibition and extends particularly to some of the more contemporary artists involved. Sydney-born video artist Shaun Gladwell is a good example of this. Gladwell’s most famous piece, which is featured in the exhibition, is Storm Sequence (2000), a video of Gladwell skateboarding on the Bondi seafront as one of Sydney’s signature brutal storms lingers offshore. It is his acknowledgment of landscape (or seascape) tradition, coloured by Gladwell’s own individualism. ‘To exhibit my work in this show might make some sense because I was interested in Turner and the idea of atmosphere affecting vision, something I was really interested in around the time of Storm Sequence. I was thinking about this tradition of Romantic landscape, but I wanted to make it personal,’ says Gladwell. But he didn’t want to just embark on borrowing imagery from elsewhere. He wanted to bring it to his experience and his world through skateboarding and beach culture."
+        },
+        {
+          "label": "G",
+          "text": "So while it may seem narrow for Britain to reduce Australian art to the genre of landscape, there can be little denying that British landscape painting is still relevant to a current generation of Australian practitioners, however indirectly."
+        },
+        {
+          "label": "H",
+          "text": "Visitors to the exhibition encounter Australian Aboriginal art first, the idea being that these works warrant a prominent position because they were ‘first’. Over the last couple of decades, London has hosted many successful exhibitions of Aboriginal art in smaller spaces, but for Soriano, Australia represents an opportunity to place such art within the context of new relationships to the art of the settlers and white Australia. ‘One of the reasons landscape was seen as being the right theme was because Australian art started in and on the landscape,’ she says. ‘[The exhibition] is a beautiful meshing of the two different kinds of art that allowed me to bring them together comfortably and honestly with this theme. It was important for me to present Indigenous art to audiences, and I felt it was most accurate to be seen as part of Australian art history, rather than a separate exhibition of its own.’"
+        },
+        {
+          "label": "I",
+          "text": "Meanwhile, Australian critic Mendelssohn also points out that London is increasingly less important to today’s generation of artists, and this somewhat weakens the ceremony surrounding the exhibition in London. ‘China is the most important art market in the world,’ she says. ‘If you’ve made it in Shanghai, you’ve made it. The world has changed. My students in Australia, who come from all over the world, really want to see Venice Biennale and Art Basel, but they’re less interested in going to London. When I was growing up, London was the destination, and then when I was at university all the smart young things wanted to go to New York,’ she added. ‘Now they want to go everywhere. There’s no such thing as the centre and the periphery like there used to be. It’s much more complicated.’"
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "passageId": 0,
+      "groupId": "P1G1",
+      "type": "TRUE/FALSE/NOT GIVEN",
+      "instruction": "Choose TRUE if the statement agrees with the information given in the text, choose FALSE if the statement contradicts the information, or choose NOT GIVEN if there is no information on this.",
+      "items": [
+        {
+          "id": 1,
+          "stem": "Many of the RFDS doctors work as volunteers.",
+          "key": "NOT GIVEN",
+          "explanation": "Bài chỉ nói RFDS là tổ chức phi lợi nhuận và cung cấp chăm sóc y tế miễn phí, nhưng không nói các bác sĩ có làm tình nguyện viên hay không.",
+          "evidence": "This non-profit organisation ... provides free medical care to people who live, work or travel in remote and regional parts of Australia."
+        },
+        {
+          "id": 2,
+          "stem": "RFDS dentists make trips to outback communities each month.",
+          "key": "FALSE",
+          "explanation": "Bài nói nha sĩ RFDS có thể chỉ đến một cộng đồng vài tháng một lần, thậm chí mỗi năm một lần, nên không phải mỗi tháng.",
+          "evidence": "RFDS dentists might only visit a community once every few months, or sometimes once per year."
+        },
+        {
+          "id": 3,
+          "stem": "RFDS dentists are accompanied on their journeys to remote areas by a dental nurse.",
+          "key": "NOT GIVEN",
+          "explanation": "Không có thông tin nào cho biết nha sĩ RFDS có đi cùng y tá nha khoa hay không.",
+          "evidence": "In some locations that the RFDS visits, there are no suitable dental facilities, so dentists have to bring everything with them."
+        },
+        {
+          "id": 4,
+          "stem": "RFDS dentists must provide a wide range of dental services.",
+          "key": "TRUE",
+          "explanation": "Bài nói họ phải là những người làm được mọi việc vì không thể chuyển bệnh nhân sang nha sĩ chuyên khoa.",
+          "evidence": "They need to be able to do all kinds of dental procedures, as they don't have the ability to refer patients to more specialised dentists."
+        },
+        {
+          "id": 5,
+          "stem": "Rural dental patients are more informed about oral hygiene than urban patients.",
+          "key": "FALSE",
+          "explanation": "Người ở vùng sâu vùng xa nhận được ít giáo dục về vệ sinh răng miệng hơn người ở thành phố.",
+          "evidence": "people living in these areas also receive less education about good dental hygiene than their city counterparts do"
+        },
+        {
+          "id": 6,
+          "stem": "RFDS dentists educate patients about good eating habits.",
+          "key": "NOT GIVEN",
+          "explanation": "Bài nói họ giáo dục bệnh nhân về vệ sinh răng miệng như đánh răng và dùng chỉ nha khoa, nhưng không nhắc đến thói quen ăn uống.",
+          "evidence": "educate their patients on good oral hygiene, such as tooth brushing and flossing"
+        },
+        {
+          "id": 7,
+          "stem": "Urban Australians generally have better teeth because their water is treated.",
+          "key": "TRUE",
+          "explanation": "Người sống ở thành phố dùng nước có fluoride và vì thế có tỷ lệ sâu răng thấp hơn.",
+          "evidence": "City dwellers in Australia use water supplies that have been fluoridated, and their rates of tooth decay are lower because of this."
+        }
+      ]
+    },
+    {
+      "passageId": 0,
+      "groupId": "T8P1G2",
+      "type": "Summary Completion",
+      "instruction": "Complete the notes below. Write ONE WORD ONLY from the passage for each answer.",
+      "items": [
+        {
+          "id": 8,
+          "stem": "Challenges faced by RFDS dentists: need to bring equipment including ______ for records.",
+          "key": "computers",
+          "explanation": "Nha sĩ phải mang theo máy tính để theo dõi quá trình điều trị của bệnh nhân.",
+          "evidence": "computers for keeping track of patients' treatments"
+        },
+        {
+          "id": 9,
+          "stem": "Challenges faced by RFDS dentists: aircraft used to carry equipment have restricted ______.",
+          "key": "space",
+          "explanation": "Máy bay nhỏ chở nha sĩ có không gian hạn chế.",
+          "evidence": "the small planes that transport dentists have limited space"
+        },
+        {
+          "id": 10,
+          "stem": "Challenges faced by RFDS dentists: problems offering some services, e.g., fitting ______.",
+          "key": "dentures",
+          "explanation": "Răng giả khó cung cấp vì cần nhiều lần thăm khám trong thời gian dài.",
+          "evidence": "dentures (artificial teeth) can be very difficult to provide"
+        },
+        {
+          "id": 11,
+          "stem": "If necessary RFDS provides ______ for regular use.",
+          "key": "toothpaste",
+          "explanation": "RFDS cung cấp kem đánh răng khi người dân khó có khả năng mua các sản phẩm vệ sinh răng miệng cơ bản.",
+          "evidence": "basic dental hygiene items such as toothpaste and toothbrushes ... If this is the case, the RFDS supplies these"
+        },
+        {
+          "id": 12,
+          "stem": "If necessary RFDS provides ______ for regular use.",
+          "key": "toothbrushes",
+          "explanation": "RFDS cũng cung cấp bàn chải đánh răng trong trường hợp cần thiết.",
+          "evidence": "basic dental hygiene items such as toothpaste and toothbrushes ... If this is the case, the RFDS supplies these"
+        },
+        {
+          "id": 13,
+          "stem": "RFDS provides ______ to limit dental accidents on the sports field.",
+          "key": "mouthguards",
+          "explanation": "RFDS cung cấp dụng cụ bảo vệ răng miệng cho các vận động viên trẻ để ngăn chấn thương răng.",
+          "evidence": "The RFDS also provides mouthguards for young sports players."
+        }
+      ]
+    },
+    {
+      "passageId": 1,
+      "groupId": "T8P2G1",
+      "type": "Matching Headings",
+      "instruction": "Reading Passage 2 has six paragraphs. Choose the correct heading for each paragraph from the list of headings below. Choose the correct number, i-viii, in boxes 14-19.",
+      "items": [
+        {
+          "id": 14,
+          "stem": "Paragraph A",
+          "key": "vii",
+          "explanation": "Đoạn A tập trung vào việc nghệ thuật ảnh hưởng đến sự tự tin, động lực, thái độ và nhận thức xã hội của cá nhân.",
+          "evidence": "Self-expression ... bolsters self-confidence and improves motivation and attitudes ... art can make individuals more socially conscious."
+        },
+        {
+          "id": 15,
+          "stem": "Paragraph B",
+          "key": "viii",
+          "explanation": "Đoạn B nói về việc nghệ thuật làm cộng đồng đáng sống hơn, thu hút kinh doanh, du lịch và giảm vấn đề thanh thiếu niên.",
+          "evidence": "they are attractive to businesses and industry ... Art programs can be highly effective in reducing community problems"
+        },
+        {
+          "id": 16,
+          "stem": "Paragraph C",
+          "key": "iv",
+          "explanation": "Đoạn C giải thích chương trình nghệ thuật công cộng là cách đưa nghệ thuật vào đời sống hàng ngày của công chúng.",
+          "evidence": "The primary purpose of public art is to bring art into everyday life"
+        },
+        {
+          "id": 17,
+          "stem": "Paragraph D",
+          "key": "v",
+          "explanation": "Đoạn D nêu thực trạng ít người tham gia nghệ thuật rồi giới thiệu mô hình của RAND để giải thích điều đó.",
+          "evidence": "developed \"A Behavior Model of the Participant Decision\""
+        },
+        {
+          "id": 18,
+          "stem": "Paragraph E",
+          "key": "i",
+          "explanation": "Đoạn E diễn giải kết quả nghiên cứu RAND về các nhóm người tham gia và mối liên hệ giữa trải nghiệm thời thơ ấu với tỷ lệ tham gia khi trưởng thành.",
+          "evidence": "The RAND findings reveal ... Researchers suggest that a strong relationship exists between childhood and adult art participation rates."
+        },
+        {
+          "id": 19,
+          "stem": "Paragraph F",
+          "key": "iii",
+          "explanation": "Đoạn F mô tả hai chương trình cụ thể giúp trẻ em tham gia vào hoạt động nghệ thuật.",
+          "evidence": "offer two innovative programs: The National Photography Program and the National Fine Arts Exhibit"
+        }
+      ]
+    },
+    {
+      "passageId": 1,
+      "groupId": "T8P2G2",
+      "type": "Matching Information",
+      "instruction": "Look at the following statements (Questions 20-23) and the list of researchers below. Match each statement with the correct researcher, A-F.",
+      "items": [
+        {
+          "id": 20,
+          "stem": "Art activities can contribute to lowering negative incidents associated with juvenile crime.",
+          "key": "A",
+          "explanation": "Spector cho rằng các chương trình nghệ thuật có thể giảm các vấn đề cộng đồng liên quan đến hành vi phạm pháp ở thanh thiếu niên.",
+          "evidence": "Art programs can be highly effective in reducing community problems related to delinquent behavior and truancy in youth (Spector 2000)."
+        },
+        {
+          "id": 21,
+          "stem": "Art can bring money and visitors into a community.",
+          "key": "D",
+          "explanation": "Hughes nói du lịch liên quan đến nghệ thuật tạo ra du khách và doanh thu cho cộng đồng.",
+          "evidence": "Art-related tourism generates tourists and revenue"
+        },
+        {
+          "id": 22,
+          "stem": "Commercial interests are drawn to areas that emphasize public art.",
+          "key": "C",
+          "explanation": "Riley nói những cộng đồng chú trọng cơ hội trải nghiệm nghệ thuật sẽ thu hút doanh nghiệp và ngành công nghiệp.",
+          "evidence": "they are attractive to businesses and industry"
+        },
+        {
+          "id": 23,
+          "stem": "Art activities can both energize and calm people.",
+          "key": "B",
+          "explanation": "Oliphant cho rằng trải nghiệm nghệ thuật mang lại cả kích thích lẫn thư giãn.",
+          "evidence": "provide the benefits of discovery, stimulation and relaxation (Oliphant 2000)"
+        }
+      ]
+    },
+    {
+      "passageId": 1,
+      "groupId": "T8P2G3",
+      "type": "Summary Completion",
+      "instruction": "Complete the sentences below. Write ONE WORD ONLY from the passage for each answer.",
+      "items": [
+        {
+          "id": 24,
+          "stem": "Sometimes people want to get involved in art activities but can't afford it, can't fit it into their schedule, or don't have the suitable ______.",
+          "key": "attire",
+          "explanation": "Những người muốn tham gia có thể bị cản trở bởi chi phí, thời gian và trang phục phù hợp.",
+          "evidence": "barriers such as cost, time, and proper attire"
+        },
+        {
+          "id": 25,
+          "stem": "A noticeable correlation exists between art involvement in childhood and those in adulthood ______.",
+          "key": "rates",
+          "explanation": "Bài nói có mối quan hệ mạnh mẽ giữa tỷ lệ tham gia nghệ thuật thời thơ ấu và khi trưởng thành.",
+          "evidence": "a strong relationship exists between childhood and adult art participation rates"
+        },
+        {
+          "id": 26,
+          "stem": "The National Photography Program allows members to grow personally and also gain ______ for their artistic achievements.",
+          "key": "recognition",
+          "explanation": "Chương trình cho phép thành viên phát triển bản thân và nhận được sự công nhận về mặt nghệ thuật.",
+          "evidence": "achieve personal growth and receive artistic recognition"
+        }
+      ]
+    },
+    {
+      "passageId": 2,
+      "groupId": "P3G3",
+      "type": "TRUE/FALSE/NOT GIVEN",
+      "instruction": "Choose YES if the statement agrees with the claims of the writer, choose NO if the statement contradicts the claims of the writer, or NOT GIVEN if it is impossible to say what the writer thinks about this.",
+      "items": [
+        {
+          "id": 27,
+          "stem": "As expected, the artworks chosen for the exhibition reflect a narrow interpretation of landscape.",
+          "key": "NO",
+          "explanation": "Tác giả nói điều không ngạc nhiên là triển lãm dẫn tới một quan niệm linh hoạt và rất rộng về phong cảnh, không phải hẹp.",
+          "evidence": "this results in a flexible, wide-ranging notion of landscape"
+        },
+        {
+          "id": 28,
+          "stem": "The Academy rejected Australian suggestions for the subject of the exhibition.",
+          "key": "NOT GIVEN",
+          "explanation": "Bài chỉ nói các giá trị nghệ thuật Anh đã định hướng triển lãm, nhưng không nói có đề xuất từ phía Úc bị bác bỏ.",
+          "evidence": "British artistic values have directed this exhibition"
+        },
+        {
+          "id": 29,
+          "stem": "The colonial relationship meant that early Australian landscape painting followed the traditions of English landscape painting.",
+          "key": "YES",
+          "explanation": "Tác giả khẳng định do mối liên hệ thuộc địa, nghệ thuật Úc thời kỳ đầu phản ánh sự say mê phong cảnh của Anh.",
+          "evidence": "Because of colonial ties, it was inevitable ... that it would reflect Britain's devotion to the beloved landscape"
+        },
+        {
+          "id": 30,
+          "stem": "The exhibition reflects the fact that Australian art developed its own particular qualities.",
+          "key": "YES",
+          "explanation": "Soriano nói bà muốn cho thấy nghệ thuật Úc đã phát triển bản sắc rất riêng gắn với phong cảnh và ánh sáng.",
+          "evidence": "Australian art develops a real distinctiveness, associated with the landscape and the light"
+        },
+        {
+          "id": 31,
+          "stem": "Contemporary Australian artists have generally rejected British landscape traditions.",
+          "key": "NO",
+          "explanation": "Bài nói tranh phong cảnh Anh vẫn còn liên quan đến thế hệ nghệ sĩ Úc hiện nay, dù gián tiếp.",
+          "evidence": "British landscape painting is still relevant to a current generation of Australian practitioners"
+        }
+      ]
+    },
+    {
+      "passageId": 2,
+      "groupId": "P3G1",
+      "type": "Multiple Choice",
+      "instruction": "Choose the correct answer.",
+      "items": [
+        {
+          "id": 32,
+          "stem": "What is the writer’s main point in the second paragraph?",
+          "options": [
+            "A. Australian landscape painting derives from the British tradition.",
+            "B. Australian landscape painting is more highly regarded than British.",
+            "C. Britain is still imposing its principles on Australian art.",
+            "D. British art cannot be compared to Australian art."
+          ],
+          "key": "C",
+          "explanation": "Ý chính của đoạn B là triển lãm bị định hướng bởi các giá trị nghệ thuật Anh thay vì để Úc tự do thể hiện sự trưởng thành của mình.",
+          "evidence": "there is a suggestion that British artistic values have directed this exhibition"
+        },
+        {
+          "id": 33,
+          "stem": "What does Joanna Mendelssohn find surprising?",
+          "options": [
+            "A. Modern Australian landscape painting has great variety.",
+            "B. The guidelines for the choice of work were very traditional.",
+            "C. Landscape painting remains a popular subject for British artists.",
+            "D. The British find the Australian landscape unsuitable as a subject."
+          ],
+          "key": "B",
+          "explanation": "Mendelssohn ngạc nhiên vì các quy tắc lựa chọn tác phẩm dường như quá bảo thủ.",
+          "evidence": "the underlying rules for the selection of works seemed to have been so conservative"
+        },
+        {
+          "id": 34,
+          "stem": "Shaun Gladwell’s work is included in the exhibition because",
+          "options": [
+            "A. it adopts a subjective approach to depicting the landscape.",
+            "B. skateboarding is an inspiration to many Australian artists.",
+            "C. storms are a significant feature in the Australian landscape.",
+            "D. Bondi is an iconic Australian location."
+          ],
+          "key": "A",
+          "explanation": "Tác phẩm của Gladwell dựa trên truyền thống phong cảnh nhưng được nhuốm màu cá tính riêng và ông muốn biến nó thành trải nghiệm cá nhân.",
+          "evidence": "coloured by Gladwell’s own individualism ... I wanted to make it personal"
+        },
+        {
+          "id": 35,
+          "stem": "What was the reason for Soriano including Aboriginal art in the exhibition?",
+          "options": [
+            "A. It is not well known in London art circles.",
+            "B. Aboriginal landscape painting influenced Australian settlers.",
+            "C. It is part of the Australian art tradition and not independent of it.",
+            "D. Modern Aboriginal painting deals with changes to the landscape."
+          ],
+          "key": "C",
+          "explanation": "Soriano cho rằng chính xác nhất là xem nghệ thuật bản địa như một phần của lịch sử nghệ thuật Úc, không phải một triển lãm riêng biệt.",
+          "evidence": "part of Australian art history, rather than a separate exhibition of its own"
+        },
+        {
+          "id": 36,
+          "stem": "By referring to China, Mendelssohn is making the point that",
+          "options": [
+            "A. having an exhibition in London is not as important as it used to be.",
+            "B. young artists in Britain are not interested in Australian art.",
+            "C. art from Shanghai is more important than Australian art.",
+            "D. New York is still a preferred destination for young artists."
+          ],
+          "key": "A",
+          "explanation": "Việc nhắc đến Trung Quốc nhằm nhấn mạnh London ngày nay không còn là trung tâm quan trọng như trước đối với nghệ sĩ trẻ.",
+          "evidence": "London is increasingly less important to today’s generation of artists"
+        }
+      ]
+    },
+    {
+      "passageId": 2,
+      "groupId": "T8P3G2",
+      "type": "Matching Information",
+      "instruction": "Complete each sentence with the correct ending, A-F, below.",
+      "items": [
+        {
+          "id": 37,
+          "stem": "In spite of its conservatism, the Royal Academy exhibition _______.",
+          "key": "F",
+          "explanation": "Dù còn bảo thủ, triển lãm vẫn chấp nhận và đón nhận những nét riêng của nghệ thuật Úc.",
+          "evidence": "the Academy is nevertheless embracing the peculiarities of Australian art"
+        },
+        {
+          "id": 38,
+          "stem": "Australian art of the early to mid-1800s _______.",
+          "key": "E",
+          "explanation": "Soriano nói ảnh hưởng của nghệ thuật Anh, Pháp và Đức thể hiện rõ trong giai đoạn đầu đến giữa thế kỷ 19.",
+          "evidence": "the influence of English, French or German art is much more evident in the early periods"
+        },
+        {
+          "id": 39,
+          "stem": "The modern work by Gladwell chosen for the exhibition _______.",
+          "key": "A",
+          "explanation": "Tác phẩm phản ánh bầu không khí do môi trường tự nhiên tạo ra, với sự quan tâm đến việc bầu khí quyển ảnh hưởng đến thị giác.",
+          "evidence": "the idea of atmosphere affecting vision"
+        },
+        {
+          "id": 40,
+          "stem": "Including Aboriginal art in the exhibition _______.",
+          "key": "C",
+          "explanation": "Việc đưa nghệ thuật Aboriginal vào triển lãm cho thấy nhận thức về tầm quan trọng lịch sử của vùng đất, vì nghệ thuật Úc bắt đầu từ và trên phong cảnh.",
+          "evidence": "Australian art started in and on the landscape"
+        }
+      ]
+    }
+  ]
+};
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════ */
+let currentPassage = 0;
+let highlights = [];    // { startContainer, startOffset, endContainer, endOffset, markEl }
+let checkedQuestions = {};   // { qId: true }
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Inject test name into sidebar
+  const tn = document.getElementById('sidebar-test-name');
+  if (tn) tn.textContent = TEACHER_DATA.meta.testName;
+
+  buildQuestionMap();
+  renderPassage(0);
+  renderQuestions(0);
+  buildAllKeysTable();
+  setupSplitter();
+  setupHighlightTool();
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   QUESTION MAP (sidebar)
+═══════════════════════════════════════════════════════════════ */
+function buildQuestionMap() {
+  const grid = document.getElementById('q-map');
+  grid.innerHTML = '';
+  for (let i = 1; i <= TEACHER_DATA.meta.totalQuestions; i++) {
+    const chip = document.createElement('div');
+    chip.className = 'q-chip';
+    chip.textContent = i;
+    chip.id = `qchip-${i}`;
+    chip.onclick = () => scrollToQuestion(i);
+    grid.appendChild(chip);
+  }
+}
+
+function scrollToQuestion(id) {
+  const el = document.getElementById(`q-card-${id}`);
+  if (el) {
+    // Switch passage if needed
+    const qData = findQuestionById(id);
+    if (qData && qData.passageId !== currentPassage) {
+      switchPassage(qData.passageId);
+      setTimeout(() => {
+        const el2 = document.getElementById(`q-card-${id}`);
+        if (el2) el2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 50);
+    } else {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+}
+
+function findQuestionById(id) {
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      if (item.id === id) return { ...item, passageId: group.passageId };
+    }
+  }
+  return null;
+}
+
+function updateChipState(id, state) {
+  const chip = document.getElementById(`qchip-${id}`);
+  if (!chip) return;
+  chip.classList.remove('answered', 'checked');
+  if (state) chip.classList.add(state);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSAGE RENDERER
+═══════════════════════════════════════════════════════════════ */
+function renderPassage(passageIdx) {
+  const p = TEACHER_DATA.passages[passageIdx];
+  const container = document.getElementById('passage-content');
+  document.getElementById('passage-badge').textContent = `Passage ${passageIdx + 1}`;
+
+  let html = `
+    <div class="passage-header">
+      <div class="passage-eyebrow">Reading Passage ${passageIdx + 1} · Questions ${p.qRange[0]}–${p.qRange[1]}</div>
+      <div class="passage-title">${p.title}</div>
+      <div class="passage-source">${p.source}</div>
+      <div class="passage-divider"></div>
+    </div>
+    <div class="passage-body" id="passage-body-${passageIdx}">
+  `;
+
+  for (const para of p.paragraphs) {
+    html += `<p><span class="para-label">${para.label}</span>&nbsp;&nbsp;${para.text}</p>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   QUESTIONS RENDERER
+═══════════════════════════════════════════════════════════════ */
+function correctionPanelContent(item) {
+  return `
+    <div class="correct-row key-row"><span class="cr-icon">✅</span><span class="cr-content"><span class="cr-label">Key:</span> <strong>${item.key}</strong></span></div>
+    <div class="correct-row explain-row"><span class="cr-icon">💡</span><span class="cr-content"><span class="cr-label">Giải thích:</span> ${item.explanation}</span></div>
+    <div class="correct-row evidence-row"><div class="evidence-row-inner"><div class="evidence-top"><span class="cr-icon">🔍</span><span class="cr-content"><span class="cr-label">Evidence:</span> "…${highlightEvidence(item.evidence, item.key)}…"</span></div><button class="btn-view-evidence" onclick="viewEvidenceInPassage(this)" data-evidence="${item.evidence.replace(/"/g,'&quot;')}">📍 Xem trong bài</button></div></div>`;
+}
+
+function correctionPanel(item) {
+  return `<div class="correction-panel" id="correction-${item.id}">${correctionPanelContent(item)}</div>`;
+}
+
+function clozeInput(id) {
+  return `<input class="cloze-input" id="teacher-input-${id}" type="text" aria-label="Answer for question ${id}" onkeydown="if(event.key==='Enter') checkAnswer(${id})">`;
+}
+
+function inlineCloze(id) {
+  return `<span class="inline-cloze">${clozeInput(id)}<span class="inline-cloze-num">(${id})</span></span>`;
+}
+
+function renderCompletionGroup(group) {
+  let body = '';
+  if (group.groupId === 'T8P1G2') {
+    const rows = [
+      ['Challenges faced by RFDS dentists', [[8, 'need to bring equipment including ', ' for records'], [9, 'aircraft used to carry equipment have restricted ', ''], [10, 'problems offering some services, e.g., fitting ', '']]],
+      ['Products supplied by RFDS dentists', [[11, 'If necessary RFDS provides ', ' for regular use'], [12, 'If necessary RFDS provides ', ' for regular use'], [13, 'RFDS provides ', ' to limit dental accidents on the sports field']]]
+    ];
+    body = rows.map(([heading, lines]) => `<section class="cloze-section"><div class="cloze-heading">${heading}</div>${lines.map(([id, before, after]) => `<div class="cloze-row"><span class="cloze-number">${id}</span>${before}${clozeInput(id)}${after}</div>`).join('')}</section>`).join('');
+  } else {
+    body = group.items.map(q => {
+      const sentence = q.stem.replace(/_{3,}/, inlineCloze(q.id));
+      return `<div class="cloze-sentence">${sentence}</div>`;
+    }).join('');
+  }
+  const ids = group.items.map(q => q.id);
+  return `<div class="cloze-sheet">${body}<div class="group-check-row"><button class="btn-check" onclick="checkGroup([${ids.join(',')}])">Check answers →</button></div><div class="completion-review"><div class="completion-review-label">Check đáp án câu:</div><div class="completion-chip-row">${group.items.map((q, idx) => `<button class="completion-chip${idx === 0 ? ' active' : ''}" id="completion-chip-${q.id}" onclick="showCompletionAnswer(${q.id}, [${ids.join(',')}])">${q.id}</button>`).join('')}</div><div class="completion-panel-stack">${group.items.map((q, idx) => `<div class="correction-panel${idx === 0 ? ' open' : ''}" id="correction-${q.id}">${correctionPanelContent(q)}</div>`).join('')}</div></div></div>`;
+}
+
+function dropdownOptions(group) {
+  if (group.groupId === 'T8P2G1') return [
+    ['i', 'Interpreting the research behind who is participating in art activities'],
+    ['ii', 'How sales of artwork have increased in many countries'],
+    ['iii', 'Two opportunities for getting kids involved in art activities'],
+    ['iv', 'How art can be made accessible to the public'],
+    ['v', 'Developing a model to explain the lack of participation in art'],
+    ['vi', 'The connection between art and media'],
+    ['vii', 'How involvement with art affects well-being and attitudes'],
+    ['viii', 'How art makes communities safer and more vital']
+  ];
+  if (group.groupId === 'T8P2G2') return [
+    ['A', 'Spector'], ['B', 'Oliphant'], ['C', 'Riley'], ['D', 'Hughes'], ['E', 'Bradshaw'], ['F', 'Yoshitomi']
+  ];
+  return [
+    ['A', 'reflects the mood created by the natural environment'],
+    ['B', 'demonstrates that the dominant art form in Australia is landscape painting'],
+    ['C', 'demonstrates an understanding of the historical importance of the land'],
+    ['D', 'showcases a very small number of artists'],
+    ['E', 'demonstrates a strong European flavour'],
+    ['F', 'shows an acceptance of the unique qualities of Australian art']
+  ];
+}
+
+function renderDropdownGroup(group) {
+  const options = dropdownOptions(group);
+  const directory = `<div class="option-directory">${options.map(([label, text]) => `<span><b>${label}</b> ${text}</span>`).join('')}</div>`;
+  const selects = group.items.map(item => `<div class="q-card" id="q-card-${item.id}"><div class="q-card-top"><div class="q-num-badge">${item.id}</div><div class="q-content"><div class="q-stem">${item.stem}</div><select class="answer-dropdown" id="teacher-select-${item.id}" onchange="selectDropdown(${item.id})"><option value="">Chọn đáp án…</option>${options.map(([label, text]) => `<option value="${label}">${label} — ${text}</option>`).join('')}</select><div><button class="btn-check" onclick="checkAnswer(${item.id})">Check →</button></div>${correctionPanel(item)}</div></div></div>`).join('');
+  return directory + selects;
+}
+
+function renderBinaryGroup(group) {
+  const values = ['YES', 'NO', 'NOT GIVEN'];
+  return group.items.map(item => `<div class="q-card" id="q-card-${item.id}"><div class="q-card-top"><div class="q-num-badge">${item.id}</div><div class="q-content"><div class="q-stem">${item.stem}</div><div class="binary-choices">${values.map(value => `<button class="binary-choice" data-value="${value}" onclick="selectBinary(${item.id}, '${value}', this)">${value}</button>`).join('')}</div><div><button class="btn-check" onclick="checkAnswer(${item.id})">Check →</button></div>${correctionPanel(item)}</div></div></div>`).join('');
+}
+
+function renderQuestions(passageIdx) {
+  const container = document.getElementById('questions-content');
+  const groups = TEACHER_DATA.questions.filter(g => g.passageId === passageIdx);
+  if (!groups.length) { container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-title">No questions</div><div class="empty-state-sub">No questions found for this passage.</div></div>`; return; }
+
+  let html = '';
+  for (const group of groups) {
+    const firstId = group.items[0].id, lastId = group.items[group.items.length - 1].id;
+    html += `<div class="q-group"><div class="q-group-header"><span class="q-group-num">Questions ${firstId}–${lastId}</span><span class="q-type-badge" onclick="openTipsPanel('${group.type}')"><span class="tip-icon">💡</span>${group.type}</span></div><div class="q-group-instruction">${group.instruction}</div>`;
+    if (group.groupId === 'T8P1G2' || group.groupId === 'T8P2G3') html += renderCompletionGroup(group);
+    else if (group.groupId === 'T8P2G1' || group.groupId === 'T8P2G2' || group.groupId === 'T8P3G2') html += renderDropdownGroup(group);
+    else if (group.groupId === 'P3G3') html += renderBinaryGroup(group);
+    else {
+      for (const item of group.items) {
+        html += `<div class="q-card" id="q-card-${item.id}"><div class="q-card-top"><div class="q-num-badge">${item.id}</div><div class="q-content"><div class="q-stem">${item.stem}</div>`;
+        if (item.options) html += `<div class="q-options">${item.options.map(opt => `<div class="q-option" onclick="selectOption(${item.id}, '${opt[0]}', this)"><div class="opt-letter">${opt[0]}</div><span>${opt.substring(3)}</span></div>`).join('')}</div>`;
+        else html += `<div class="teacher-input-wrap"><input class="teacher-input" id="teacher-input-${item.id}" type="text" placeholder="Nhập đáp án học sinh…" onkeydown="if(event.key==='Enter') checkAnswer(${item.id})"></div>`;
+        html += `<div><button class="btn-check" onclick="checkAnswer(${item.id})">Check →</button></div>${correctionPanel(item)}</div></div></div>`;
+      }
+    }
+    html += `</div>`;
+  }
+  container.innerHTML = html;
+  for (const [id, state] of Object.entries(checkedQuestions)) {
+    if (!state) continue;
+    const chip = document.getElementById(`completion-chip-${id}`);
+    if (chip) chip.classList.add('checked');
+    const answer = studentAnswers[id];
+    if (answer) updateInputFeedback(Number(id), answer.isCorrect);
+    if (!chip) {
+      const panel = document.getElementById(`correction-${id}`);
+      if (panel) panel.classList.add('open');
+    }
+  }
+}
+
+function highlightEvidence(evidence, key) {
+  if (!evidence) return '';
+  const keywords = key.split(/[\s,\/]+/).filter(w => w.length > 2);
+  let result = evidence;
+  for (const kw of keywords) {
+    const re = new RegExp(`(${kw})`, 'gi');
+    result = result.replace(re, `<span class="evidence-keyword">$1</span>`);
+  }
+  return result;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEW EVIDENCE IN PASSAGE
+   Finds the evidence phrase inside the passage pane, scrolls to it,
+   wraps it in a temporary flash span, then removes it after 3s.
+═══════════════════════════════════════════════════════════════ */
+let _activeEvidenceBtn = null;
+let _activeFlashSpans = [];
+
+function viewEvidenceInPassage(btn) {
+  const evidenceText = btn.dataset.evidence;
+  if (!evidenceText) return;
+
+  // Toggle off if same button clicked again
+  if (_activeEvidenceBtn === btn) {
+    clearEvidenceFlash();
+    return;
+  }
+
+  // Clear any previous flash
+  clearEvidenceFlash();
+
+  _activeEvidenceBtn = btn;
+  btn.classList.add('active');
+  btn.textContent = '✕ Đang xem…';
+
+  const passagePane = document.getElementById('passage-pane');
+
+  // Build a clean search string (collapse whitespace)
+  const searchStr = evidenceText.replace(/\s+/g, ' ').trim();
+
+  // Use TreeWalker to find the text node(s) containing the phrase
+  const result = findTextInPane(passagePane, searchStr);
+
+  if (!result) {
+    btn.textContent = '⚠ Không tìm thấy';
+    btn.classList.remove('active');
+    setTimeout(() => { btn.textContent = '📍 Xem trong bài'; }, 2000);
+    _activeEvidenceBtn = null;
+    return;
+  }
+
+  // Wrap the matched range in flash spans (may span nodes)
+  const flashSpans = wrapRangeWithFlash(result);
+  _activeFlashSpans = flashSpans;
+
+  // Scroll the first span into view in the passage pane
+  if (flashSpans.length > 0) {
+    flashSpans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // Auto-clear after 3.5s
+  setTimeout(() => {
+    if (_activeEvidenceBtn === btn) clearEvidenceFlash();
+  }, 3500);
+}
+
+function clearEvidenceFlash() {
+  _activeFlashSpans.forEach(span => {
+    const parent = span.parentNode;
+    if (!parent) return;
+    while (span.firstChild) parent.insertBefore(span.firstChild, span);
+    parent.removeChild(span);
+    try { parent.normalize(); } catch(e) {}
+  });
+  _activeFlashSpans = [];
+
+  if (_activeEvidenceBtn) {
+    _activeEvidenceBtn.classList.remove('active');
+    _activeEvidenceBtn.textContent = '📍 Xem trong bài';
+    _activeEvidenceBtn = null;
+  }
+}
+
+/**
+ * Find `searchStr` across text nodes inside `container`.
+ * Returns a Range covering the match, or null.
+ */
+function findTextInPane(container, searchStr) {
+  // Concatenate all text node content with bookmarks to map back positions
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) nodes.push(node);
+
+  // Build a single string from all text, track node boundaries
+  let fullText = '';
+  const nodeMap = []; // { node, start, end }
+  for (const n of nodes) {
+    const start = fullText.length;
+    fullText += n.textContent;
+    nodeMap.push({ node: n, start, end: fullText.length });
+  }
+
+  // Normalise whitespace in fullText for matching (but keep original nodes)
+  // We search on a whitespace-collapsed shadow, mapping indices back
+  const shadowText = fullText.replace(/\s+/g, ' ');
+  const searchNorm = searchStr.replace(/\s+/g, ' ');
+
+  // Build index map: shadowText[i] → fullText index
+  const shadowToFull = [];
+  let fi = 0;
+  let prevWasSpace = false;
+  for (let si = 0; si < fullText.length; si++) {
+    const ch = fullText[si];
+    const isSpace = /\s/.test(ch);
+    if (isSpace) {
+      if (!prevWasSpace) {
+        shadowToFull.push(si);
+        prevWasSpace = true;
+      }
+      // collapsed — don't push
+    } else {
+      shadowToFull.push(si);
+      prevWasSpace = false;
+    }
+  }
+
+  const matchIdx = shadowText.indexOf(searchNorm);
+  if (matchIdx < 0) return null;
+
+  const fullStart = shadowToFull[matchIdx] ?? matchIdx;
+  const fullEnd   = (shadowToFull[matchIdx + searchNorm.length - 1] ?? (matchIdx + searchNorm.length - 1)) + 1;
+
+  // Map fullText positions back to DOM nodes
+  function nodeAtPos(pos) {
+    for (const nm of nodeMap) {
+      if (pos >= nm.start && pos < nm.end) {
+        return { node: nm.node, offset: pos - nm.start };
+      }
+    }
+    // edge case: end of last node
+    const last = nodeMap[nodeMap.length - 1];
+    return { node: last.node, offset: last.node.textContent.length };
+  }
+
+  const startInfo = nodeAtPos(fullStart);
+  const endInfo   = nodeAtPos(fullEnd);
+
+  const range = document.createRange();
+  range.setStart(startInfo.node, startInfo.offset);
+  range.setEnd(endInfo.node, endInfo.offset);
+  return range;
+}
+
+/**
+ * Wrap a Range (possibly multi-node) with <span class="evidence-flash"> elements.
+ * Returns array of spans created.
+ */
+function wrapRangeWithFlash(range) {
+  const passagePane = document.getElementById('passage-pane');
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT,
+    null
+  );
+
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    if (!passagePane.contains(node)) continue;
+    if (!range.intersectsNode(node)) continue;
+    nodes.push(node);
+  }
+
+  const spans = [];
+  nodes.forEach(textNode => {
+    let start = 0;
+    let end = textNode.length;
+    if (textNode === range.startContainer) start = range.startOffset;
+    if (textNode === range.endContainer)   end   = range.endOffset;
+    if (start >= end) return;
+
+    const before = textNode.splitText(start);
+    before.splitText(end - start);
+
+    const span = document.createElement('span');
+    span.className = 'evidence-flash';
+    before.parentNode.insertBefore(span, before);
+    span.appendChild(before);
+    spans.push(span);
+  });
+
+  return spans;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PASSAGE SWITCHING
+═══════════════════════════════════════════════════════════════ */
+function switchPassage(idx) {
+  currentPassage = idx;
+
+  // Update tabs
+  document.querySelectorAll('.passage-tab').forEach((t, i) => {
+    t.classList.toggle('active', i === idx);
+  });
+
+  renderPassage(idx);
+  renderQuestions(idx);
+
+  // Scroll both panes to top
+  document.getElementById('passage-pane').scrollTop = 0;
+  document.getElementById('questions-pane').scrollTop = 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MCQ SELECTION
+═══════════════════════════════════════════════════════════════ */
+function selectOption(qId, letter, el) {
+  const card = document.getElementById(`q-card-${qId}`);
+  card.querySelectorAll('.q-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.dataset.selected = letter;
+  updateChipState(qId, 'answered');
+}
+
+function selectDropdown(qId) {
+  updateChipState(qId, 'answered');
+}
+
+function selectBinary(qId, value, el) {
+  const card = document.getElementById(`q-card-${qId}`);
+  card.querySelectorAll('.binary-choice').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  updateChipState(qId, 'answered');
+}
+
+function checkGroup(ids) {
+  ids.forEach(id => checkAnswer(id));
+}
+
+
+function showCompletionAnswer(qId, groupIds) {
+  groupIds.forEach(id => {
+    const chip = document.getElementById(`completion-chip-${id}`);
+    const panel = document.getElementById(`correction-${id}`);
+    if (chip) chip.classList.toggle('active', id === qId);
+    if (panel) panel.classList.toggle('open', id === qId);
+  });
+}
+
+function updateInputFeedback(qId, isCorrect) {
+  const input = document.getElementById(`teacher-input-${qId}`);
+  if (!input) return;
+  input.classList.remove('is-correct', 'is-wrong');
+  if (input.value.trim() === '') return;
+  input.classList.add(isCorrect ? 'is-correct' : 'is-wrong');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHECK ANSWER
+═══════════════════════════════════════════════════════════════ */
+function checkAnswer(qId) {
+  const panel = document.getElementById(`correction-${qId}`);
+  if (!panel) return;
+
+  panel.classList.add('open');
+  checkedQuestions[qId] = true;
+  updateChipState(qId, 'checked');
+
+  // Determine correctness for report
+  const qData = findQuestionById(qId);
+  if (qData) {
+    let studentAnswer = '';
+    let isCorrect = false;
+
+    const card = document.getElementById(`q-card-${qId}`);
+    const select = document.getElementById(`teacher-select-${qId}`);
+    const binary = card ? card.querySelector('.binary-choice.selected') : null;
+    if (qData.options) {
+      const selected = card ? card.querySelector('.q-option.selected') : null;
+      studentAnswer = selected ? selected.dataset.selected : '';
+      isCorrect = studentAnswer.toUpperCase() === qData.key.toUpperCase();
+    } else if (select) {
+      studentAnswer = select.value;
+      isCorrect = studentAnswer.toUpperCase() === qData.key.toUpperCase();
+    } else if (binary) {
+      studentAnswer = binary.dataset.value;
+      isCorrect = studentAnswer.toUpperCase() === qData.key.toUpperCase();
+    } else {
+      const input = document.getElementById(`teacher-input-${qId}`);
+      studentAnswer = input ? input.value.trim() : '';
+      const norm = s => s.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
+      isCorrect = norm(studentAnswer) === norm(qData.key) ||
+        (qData.key.includes('/') && qData.key.split('/').some(k => norm(k) === norm(studentAnswer)));
+    }
+
+    registerStudentAnswer(qId, studentAnswer, isCorrect);
+    updateInputFeedback(qId, isCorrect);
+  }
+
+  if (document.getElementById(`completion-chip-${qId}`)) return;
+
+  setTimeout(() => {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 50);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ALL KEYS TABLE
+═══════════════════════════════════════════════════════════════ */
+function buildAllKeysTable() {
+  const table = document.getElementById('key-table-body');
+  let html = '';
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      html += `<tr>
+        <td class="kt-num">${item.id}</td>
+        <td class="kt-key">${item.key}</td>
+        <td class="kt-type">${group.type.split(' ').slice(0,2).join(' ')}</td>
+      </tr>`;
+    }
+  }
+  table.innerHTML = html;
+}
+
+function toggleAllKeys(show) {
+  document.getElementById('all-keys-panel').classList.toggle('open', show);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HIGHLIGHT TOOL — robust multi-node, cursor-anchored, click-to-remove
+═══════════════════════════════════════════════════════════════ */
+let _hlMouseX = 0;
+let _hlMouseY = 0;
+let _pendingRange = null;
+
+function setupHighlightTool() {
+  const toolbar = document.getElementById('hl-toolbar');
+  const passagePane = document.getElementById('passage-pane');
+
+  // Track mouse position at all times for accurate toolbar placement
+  document.addEventListener('mousemove', (e) => {
+    _hlMouseX = e.clientX;
+    _hlMouseY = e.clientY;
+  });
+
+  // Click on an existing highlight → remove it
+  passagePane.addEventListener('click', (e) => {
+    const mark = e.target.closest('mark.hl-yellow');
+    if (mark) {
+      removeHighlight(mark);
+      e.stopPropagation();
+      return;
+    }
+  });
+
+  // After mouseup: check if there's a real selection inside the passage
+  document.addEventListener('mouseup', (e) => {
+    // Ignore clicks inside the toolbar itself
+    if (toolbar.contains(e.target)) return;
+
+    // Small delay so selection is settled
+    setTimeout(() => {
+      const sel = window.getSelection();
+
+      if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+        hideToolbar();
+        return;
+      }
+
+      // Verify selection is inside the passage pane
+      const range = sel.getRangeAt(0);
+      if (!passagePane.contains(range.commonAncestorContainer)) {
+        hideToolbar();
+        return;
+      }
+
+      // Store the range for later use when button is clicked
+      _pendingRange = range.cloneRange();
+
+      // Position toolbar above where the mouse is
+      showToolbarAt(_hlMouseX, _hlMouseY - 52);
+    }, 10);
+  });
+
+  // Hide toolbar on mousedown outside
+  document.addEventListener('mousedown', (e) => {
+    if (!toolbar.contains(e.target)) {
+      hideToolbar();
+    }
+  });
+
+  // Hide on scroll (re-anchoring is complex; just hide)
+  document.getElementById('passage-pane').addEventListener('scroll', () => {
+    hideToolbar();
+  });
+}
+
+function showToolbarAt(x, y) {
+  const toolbar = document.getElementById('hl-toolbar');
+  // Clamp so toolbar doesn't go off-screen
+  const tw = 130; // approx toolbar width
+  const clampedX = Math.min(Math.max(x, tw / 2 + 8), window.innerWidth - tw / 2 - 8);
+  const clampedY = Math.max(y, 8);
+  toolbar.style.left = `${clampedX}px`;
+  toolbar.style.top = `${clampedY}px`;
+  toolbar.classList.add('visible');
+}
+
+function hideToolbar() {
+  document.getElementById('hl-toolbar').classList.remove('visible');
+}
+
+function applyHighlight() {
+  const sel = window.getSelection();
+  const range = (_pendingRange && !_pendingRange.collapsed)
+    ? _pendingRange
+    : (sel && !sel.isCollapsed ? sel.getRangeAt(0) : null);
+
+  if (!range) { hideToolbar(); return; }
+
+  // Use TreeWalker to split across text nodes safely — no broken DOM
+  highlightRange(range);
+
+  // Clear selection
+  if (sel) sel.removeAllRanges();
+  _pendingRange = null;
+  hideToolbar();
+}
+
+/**
+ * Highlight a Range that may span multiple text nodes / block elements.
+ * Strategy: collect all text nodes within the range, wrap each one
+ * individually in a <mark>. This avoids the surroundContents() constraint
+ * that the range must not partially select an element, and keeps
+ * inline flow intact so text never breaks unexpectedly.
+ */
+function highlightRange(range) {
+  const passagePane = document.getElementById('passage-pane');
+
+  // Collect all text nodes touched by the range
+  const walker = document.createTreeWalker(
+    range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer,
+    NodeFilter.SHOW_TEXT,
+    null
+  );
+
+  const nodes = [];
+  let node;
+  while ((node = walker.nextNode())) {
+    // Only include nodes inside the passage pane
+    if (!passagePane.contains(node)) continue;
+    if (!range.intersectsNode(node)) continue;
+    nodes.push(node);
+  }
+
+  nodes.forEach((textNode) => {
+    // Determine which portion of this text node is selected
+    let start = 0;
+    let end = textNode.length;
+
+    if (textNode === range.startContainer) start = range.startOffset;
+    if (textNode === range.endContainer) end = range.endOffset;
+
+    if (start >= end) return; // nothing to highlight here
+
+    // Split and wrap only the selected slice
+    // splitText returns the tail; we need to be careful about order
+    const before = textNode.splitText(start);       // before = [start..end]
+    const after  = before.splitText(end - start);   // after = [end..]  (unused but needed)
+
+    const mark = document.createElement('mark');
+    mark.className = 'hl-yellow';
+    before.parentNode.insertBefore(mark, before);
+    mark.appendChild(before);
+    highlights.push(mark);
+  });
+
+  // Normalize to clean up any adjacent text nodes we created
+  // but only where it's safe (not inside inputs)
+  try {
+    const ancestor = range.commonAncestorContainer.nodeType === Node.TEXT_NODE
+      ? range.commonAncestorContainer.parentNode
+      : range.commonAncestorContainer;
+    ancestor.normalize && ancestor.normalize();
+  } catch(e) { /* ignore */ }
+}
+
+function removeHighlight(mark) {
+  // Unwrap the mark: move all children before the mark, then remove mark
+  const parent = mark.parentNode;
+  if (!parent) return;
+  while (mark.firstChild) {
+    parent.insertBefore(mark.firstChild, mark);
+  }
+  parent.removeChild(mark);
+  parent.normalize();
+  // Remove from highlights array
+  const idx = highlights.indexOf(mark);
+  if (idx > -1) highlights.splice(idx, 1);
+}
+
+function clearAllHighlights() {
+  // Work on a copy since removeHighlight mutates the array
+  [...highlights].forEach(mark => removeHighlight(mark));
+  highlights = [];
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESIZABLE SPLITTER
+═══════════════════════════════════════════════════════════════ */
+function setupSplitter() {
+  const splitter = document.getElementById('splitter');
+  const passagePane = document.getElementById('passage-pane');
+  const splitContainer = document.getElementById('split-container');
+
+  let isDragging = false;
+  let startX = 0;
+  let startWidth = 0;
+
+  splitter.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startWidth = passagePane.offsetWidth;
+    splitter.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const containerW = splitContainer.offsetWidth;
+    const newW = Math.min(Math.max(startWidth + dx, 280), containerW - 280);
+    passagePane.style.width = newW + 'px';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    splitter.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TIPS DATA — Hướng dẫn chi tiết cho từng dạng bài IELTS Reading
+═══════════════════════════════════════════════════════════════ */
+const TIPS_DATA = {
+  "TRUE/FALSE/NOT GIVEN": {
+    overview: "Dạng bài yêu cầu học sinh xác định thông tin trong bài có khớp với câu phát biểu không. Đây là dạng nhiều học sinh nhầm lẫn nhất vì ranh giới giữa FALSE và NOT GIVEN rất mỏng.",
+    steps: [
+      { title: "Đọc câu hỏi trước", text: "Đọc kỹ câu phát biểu, <strong>gạch chân keyword</strong> (danh từ, tính từ, số liệu). Đây là từ cần tìm trong bài." },
+      { title: "Locate — không đọc toàn bài", text: "Dùng keyword để <strong>xác định đoạn văn</strong> có chứa thông tin liên quan. Chỉ đọc kỹ đoạn đó." },
+      { title: "So sánh từng chi tiết", text: "<strong>TRUE</strong>: bài đọc xác nhận rõ ràng. <strong>FALSE</strong>: bài đọc nói điều ngược lại. <strong>NOT GIVEN</strong>: bài không đề cập, hoặc không đủ thông tin để xác nhận/phủ nhận." },
+      { title: "Không suy luận", text: "Với NOT GIVEN, học sinh hay tự suy luận từ kiến thức bên ngoài. <strong>Chỉ dùng thông tin trong bài</strong>, không dùng kiến thức thực tế." }
+    ],
+    traps: [
+      "Nhầm FALSE với NOT GIVEN: bài đọc im lặng về chủ đề ≠ bài đọc phủ nhận.",
+      "Dừng lại ở từ quen thuộc — paraphrase thường thay đổi từ nhưng giữ nguyên nghĩa.",
+      "Qualifier bẫy: 'all', 'always', 'never', 'only' — một qualifier sai là cả câu FALSE."
+    ],
+    bandTips: [
+      "Band 6→7: Luyện phân biệt FALSE vs NOT GIVEN bằng cách hỏi: 'Bài có nói điều GÌ mâu thuẫn không?' Nếu có → FALSE. Nếu chỉ không đề cập → NOT GIVEN.",
+      "Band 7→8: Chú ý scope — câu hỏi nói 'tất cả' nhưng bài chỉ nói 'một số' = FALSE ngay.",
+      "Band 8+: Đọc qualifier và hedging language ('may', 'might', 'some') — đây thường là bẫy NOT GIVEN."
+    ]
+  },
+  "Multiple Choice": {
+    overview: "Dạng bài yêu cầu chọn 1 trong 4 đáp án (A/B/C/D). Các câu hỏi thường theo thứ tự xuất hiện trong bài, giúp locate dễ hơn.",
+    steps: [
+      { title: "Đọc câu hỏi — bỏ qua options", text: "Đọc phần stem (câu hỏi) trước, <strong>không đọc A/B/C/D</strong>. Gạch chân keyword để locate trong bài." },
+      { title: "Locate và đọc kỹ đoạn đó", text: "Tìm đoạn văn chứa thông tin, đọc toàn bộ đoạn đó. <strong>Đừng chọn đáp án chỉ vì thấy từ quen</strong>." },
+      { title: "Loại trừ", text: "So sánh từng option với bài. <strong>Loại những cái sai rõ ràng trước</strong>, rồi chọn cái còn lại khớp nhất." },
+      { title: "Kiểm tra lại", text: "Đáp án đúng thường là paraphrase của bài, không phải copy nguyên văn. Nếu một option dùng từ y chang bài → <strong>thường là bẫy</strong>." }
+    ],
+    traps: [
+      "Distractor dùng từ trong bài nhưng sai nghĩa (true words, wrong meaning).",
+      "Option nghe 'hợp lý' theo kiến thức thực tế nhưng bài không nói.",
+      "Chọn theo cảm tính vì câu đó 'đúng về mặt chung' — phải bám vào bài."
+    ],
+    bandTips: [
+      "Band 6→7: Luôn quay lại bài đọc để verify, đừng chọn từ trí nhớ.",
+      "Band 7→8: Chú ý hedging trong options — 'may contribute' vs 'is the main cause' là hai đáp án rất khác nhau.",
+      "Band 8+: Đọc tất cả 4 options trước khi chọn, kể cả khi đã thấy đáp án đúng. Đề IELTS hay có 'better answer'."
+    ]
+  },
+  "Short Answer Questions": {
+    overview: "Dạng bài yêu cầu trả lời câu hỏi bằng từ trích thẳng từ bài đọc, thường giới hạn 2-3 từ. Học sinh PHẢI dùng từ trong bài, không được paraphrase.",
+    steps: [
+      { title: "Đọc giới hạn từ cẩn thận", text: "<strong>NO MORE THAN TWO/THREE WORDS</strong> — đếm từ kỹ. 'a' và 'the' cũng tính là 1 từ." },
+      { title: "Xác định loại thông tin cần tìm", text: "Câu hỏi bắt đầu bằng gì? <strong>What = danh từ/khái niệm. How many = số. When = thời gian. Where = địa điểm</strong>." },
+      { title: "Scan bài theo từ khoá câu hỏi", text: "Locate vùng bài có chứa thông tin. Đọc kỹ 1-2 câu xung quanh keyword." },
+      { title: "Chép đúng từ bài", text: "<strong>Copy chính xác từ bài</strong>, kể cả viết hoa. Không được đổi dạng từ (sang/không sang số nhiều, v.v.)." }
+    ],
+    traps: [
+      "Vượt giới hạn từ — 'recirculated irrigation systems' là 3 từ, đúng giới hạn. Thêm 'the' vào trước = 4 từ, sai.",
+      "Paraphrase thay vì copy — dạng này BẮT BUỘC dùng từ trong bài.",
+      "Lấy sai phần: câu hỏi hỏi về tác động nhưng học sinh chép nguyên nhân."
+    ],
+    bandTips: [
+      "Band 6→7: Luyện scan — nhìn vào câu hỏi, khoanh keyword, chỉ đọc đoạn chứa keyword đó.",
+      "Band 7→8: Để ý số ít/số nhiều, verb tense trong câu hỏi để đoán loại đáp án.",
+      "Band 8+: Khi answer không rõ, đọc rộng hơn 1 đoạn trước/sau vùng locate ban đầu."
+    ]
+  },
+  "Matching Headings": {
+    overview: "Dạng bài yêu cầu ghép tiêu đề phù hợp với từng đoạn văn. Cần nắm ý chính của cả đoạn, không chỉ một câu.",
+    steps: [
+      { title: "Đọc tất cả headings trước", text: "Đọc và hiểu hết list headings. <strong>Đánh dấu keyword</strong> trong từng heading." },
+      { title: "Đọc topic sentence của mỗi đoạn", text: "Câu đầu thường là topic sentence. Đọc câu đầu + câu cuối của đoạn để nắm ý chính." },
+      { title: "Ghép ý chính — không chi tiết", text: "Heading phản ánh <strong>ý chính của cả đoạn</strong>, không phải một chi tiết nhỏ. Loại heading chỉ đề cập một phần." },
+      { title: "Dùng phương pháp loại trừ", text: "Bắt đầu từ đoạn văn dễ xác định nhất. Loại heading đã dùng khỏi danh sách." }
+    ],
+    traps: [
+      "Chọn heading chứa từ xuất hiện trong đoạn nhưng không phải ý chính.",
+      "Nhầm chi tiết ví dụ với luận điểm chính — ví dụ minh họa không nên là heading.",
+      "Headings số lẻ: có nhiều headings hơn đoạn văn — không nhất thiết dùng hết."
+    ],
+    bandTips: [
+      "Band 6→7: Sau khi chọn heading, kiểm tra lại: 'Heading này có bao quát cả đoạn không, hay chỉ 1-2 câu?'",
+      "Band 7→8: Phân biệt paragraph về 'vấn đề' vs 'giải pháp' vs 'phê bình' — heading thường dùng từ chỉ chức năng này.",
+      "Band 8+: Để ý shift trong đoạn — đoạn có thể bắt đầu bằng ý A nhưng kết thúc bằng ý B; heading phản ánh ý B (kết luận của đoạn)."
+    ]
+  },
+  "Matching Information": {
+    overview: "Dạng bài yêu cầu xác định đoạn văn (A, B, C...) chứa thông tin được mô tả. Khác Matching Headings, đây tìm thông tin cụ thể chứ không phải ý chính.",
+    steps: [
+      { title: "Đọc câu hỏi — xác định loại thông tin", text: "Mỗi câu mô tả một <strong>loại thông tin cụ thể</strong>: số liệu, ví dụ, nguyên nhân, kết quả, trích dẫn, v.v." },
+      { title: "Scan toàn bài — không đọc tuần tự", text: "<strong>Scan nhanh</strong> từng đoạn để tìm đoạn có chứa loại thông tin đó. Dùng keyword từ câu hỏi." },
+      { title: "Verify bằng cách đọc kỹ đoạn đó", text: "Khi đã locate đoạn, đọc kỹ để xác nhận thông tin khớp với câu hỏi." },
+      { title: "Chú ý: đoạn có thể dùng lại", text: "Một đoạn văn có thể là đáp án của nhiều câu hỏi khác nhau." }
+    ],
+    traps: [
+      "Locate nhầm đoạn vì keyword giống nhau nhưng thông tin khác.",
+      "Bỏ qua đoạn đầu/cuối — học sinh hay chỉ scan phần giữa.",
+      "Đọc quá chậm từng đoạn — dạng này cần scan nhanh rồi mới đọc kỹ."
+    ],
+    bandTips: [
+      "Band 6→7: Đánh số từng đoạn trước, ghi tóm tắt 3-4 từ bên cạnh mỗi đoạn khi đọc lần đầu.",
+      "Band 7→8: Nhận biết 'loại thông tin' trong câu hỏi — 'a reason why', 'an example of', 'a comparison between' để scan mục tiêu hơn.",
+      "Band 8+: Làm câu khó nhất trước — câu nào mô tả thông tin rất cụ thể (số liệu, tên riêng) thì locate nhanh nhất."
+    ]
+  },
+  "Summary Completion": {
+    overview: "Dạng bài cho một đoạn tóm tắt có chỗ trống, học sinh điền từ lấy từ bài đọc hoặc từ danh sách cho sẵn. Thường xuất hiện theo thứ tự bài đọc.",
+    steps: [
+      { title: "Đọc toàn bộ summary trước", text: "Đọc để hiểu chủ đề và <strong>đoán loại từ cần điền</strong> (danh từ, tính từ, động từ, số)." },
+      { title: "Locate trong bài", text: "Summary thường theo thứ tự bài đọc. Xác định đoạn bài tương ứng với phần summary đang xét." },
+      { title: "Điền từ bài — đúng dạng từ", text: "Nếu đề yêu cầu 'words from the passage' — <strong>copy nguyên văn</strong>. Kiểm tra số ít/nhiều, thì động từ." },
+      { title: "Đọc lại summary sau khi điền", text: "Đọc lại toàn bộ summary để kiểm tra <strong>ngữ nghĩa và ngữ pháp</strong> tổng thể có thông không." }
+    ],
+    traps: [
+      "Điền từ nghe 'đúng về nghĩa' nhưng không có trong bài.",
+      "Vượt giới hạn số từ — luôn đếm lại.",
+      "Điền paraphrase thay vì từ gốc — dạng 'words from the passage' không chấp nhận điều này."
+    ],
+    bandTips: [
+      "Band 6→7: Sau khi locate đoạn, đọc 2-3 câu trước và sau keyword để hiểu ngữ cảnh đầy đủ.",
+      "Band 7→8: Dùng gợi ý ngữ pháp — chỗ trống sau 'the' cần danh từ; sau 'is' cần tính từ/danh từ.",
+      "Band 8+: Xem summary như một mini-test về paraphrase — hiểu cách bài tóm tắt ý của passage để đoán đúng từ cần điền."
+    ]
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   TIPS PANEL
+═══════════════════════════════════════════════════════════════ */
+function openTipsPanel(qType) {
+  const panel = document.getElementById('tips-panel');
+  const title = document.getElementById('tips-panel-title');
+  const body  = document.getElementById('tips-panel-body');
+
+  // Find matching tips — try exact match, then partial
+  let data = TIPS_DATA[qType];
+  if (!data) {
+    const key = Object.keys(TIPS_DATA).find(k => qType.toLowerCase().includes(k.toLowerCase().split(' ')[0]));
+    data = key ? TIPS_DATA[key] : null;
+  }
+
+  if (!data) {
+    body.innerHTML = `<div style="color:var(--ink-muted);padding:20px;font-size:13px;">Chưa có tips cho dạng bài này.</div>`;
+  } else {
+    title.textContent = qType;
+
+    const stepsHtml = data.steps.map((s, i) => `
+      <div class="tips-item">
+        <div class="tips-item-num">${i + 1}</div>
+        <div class="tips-item-text"><strong>${s.title}:</strong> ${s.text}</div>
+      </div>`).join('');
+
+    const trapsHtml = data.traps.map(t => `
+      <div class="tips-trap">
+        <span class="tips-trap-icon">⚠️</span>
+        <span>${t}</span>
+      </div>`).join('');
+
+    const bandHtml = data.bandTips.map(b => `
+      <div class="tips-band">
+        <span class="tips-band-icon">🚀</span>
+        <span>${b}</span>
+      </div>`).join('');
+
+    body.innerHTML = `
+      <div class="tips-overview">${data.overview}</div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">📋 Quy trình làm bài</div>
+        ${stepsHtml}
+      </div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">⚠️ Bẫy thường gặp</div>
+        ${trapsHtml}
+      </div>
+
+      <div class="tips-section">
+        <div class="tips-section-title">🚀 Tips tăng Band</div>
+        ${bandHtml}
+      </div>`;
+  }
+
+  panel.classList.add('open');
+}
+
+function closeTipsPanel() {
+  document.getElementById('tips-panel').classList.remove('open');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR NAV SWITCH (Câu hỏi ↔ Báo cáo)
+═══════════════════════════════════════════════════════════════ */
+function switchSidebarView(view) {
+  const isQ = view === 'questions';
+  const qView = document.getElementById('sidebar-view-questions');
+  const rView = document.getElementById('sidebar-view-report');
+  qView.classList.toggle('hidden', !isQ);
+  rView.classList.toggle('visible', !isQ);
+  document.getElementById('snav-questions').classList.toggle('active', isQ);
+  document.getElementById('snav-report').classList.toggle('active', !isQ);
+  if (!isQ) buildReport();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   REPORT BUILDER
+═══════════════════════════════════════════════════════════════ */
+// Track student answers: { qId: { studentAnswer, isCorrect } }
+const studentAnswers = {};
+
+// Call after each checkAnswer to register
+function registerStudentAnswer(qId, studentAnswer, isCorrect) {
+  studentAnswers[qId] = { studentAnswer, isCorrect };
+  const chip = document.getElementById(`completion-chip-${qId}`);
+  if (chip) chip.classList.add('checked');
+}
+
+function buildReport() {
+  const hint    = document.getElementById('report-hint');
+  const content = document.getElementById('report-content');
+  const totalChecked = Object.keys(studentAnswers).length;
+
+  if (totalChecked === 0) {
+    hint.style.display = 'flex';
+    content.classList.remove('visible');
+    return;
+  }
+
+  hint.style.display = 'none';
+  content.classList.add('visible');
+
+  // Group results by question type
+  const byType = {}; // { typeName: { total, wrong, items: [{id, isCorrect}] } }
+
+  for (const group of TEACHER_DATA.questions) {
+    const type = group.type;
+    if (!byType[type]) byType[type] = { total: 0, wrong: 0, items: [] };
+    for (const item of group.items) {
+      if (studentAnswers[item.id] !== undefined) {
+        byType[type].total++;
+        const correct = studentAnswers[item.id].isCorrect;
+        if (!correct) byType[type].wrong++;
+        byType[type].items.push({ id: item.id, isCorrect: correct });
+      }
+    }
+  }
+
+  // Build weakness list
+  const weakTypes = Object.entries(byType)
+    .filter(([, v]) => v.total > 0 && v.wrong > 0)
+    .sort((a, b) => (b[1].wrong / b[1].total) - (a[1].wrong / a[1].total));
+
+  let html = '';
+
+  // Summary per type
+  for (const [type, data] of Object.entries(byType)) {
+    if (data.total === 0) continue;
+    const correct = data.total - data.wrong;
+    const pct = Math.round((correct / data.total) * 100);
+    const scoreClass = pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'bad';
+    const shortType = type.split(' ').slice(0, 3).join(' ');
+
+    const qRows = data.items.map(item => {
+      const icon = item.isCorrect ? '✅' : '❌';
+      const diag = item.isCorrect ? '' : getDiagnosis(item.id);
+      return `<div class="report-q-row">
+        <span class="rq-num">${item.id}</span>
+        <span class="rq-status">${icon}</span>
+        <span class="rq-diag">${diag}</span>
+      </div>`;
+    }).join('');
+
+    html += `<div class="report-group-card">
+      <div class="report-group-head">
+        <span class="report-group-name">${shortType}</span>
+        <span class="report-group-score ${scoreClass}">${correct}/${data.total} · ${pct}%</span>
+      </div>
+      <div class="report-q-list">${qRows}</div>
+    </div>`;
+  }
+
+  // Focus areas for student
+  if (weakTypes.length > 0) {
+    const focusItems = weakTypes.slice(0, 3).map(([type, data]) => {
+      const pct = Math.round(((data.total - data.wrong) / data.total) * 100);
+      const shortT = type.split(' ').slice(0,3).join(' ');
+      return `<div class="report-focus-item">
+        <div class="report-focus-dot"></div>
+        <div><strong>${shortT}</strong>: ${pct}% chính xác — cần ôn lại quy trình và bẫy thường gặp</div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="report-summary-box">
+      <div class="report-summary-title">🎯 Học sinh cần tập trung</div>
+      ${focusItems}
+    </div>`;
+  } else if (totalChecked > 0) {
+    html += `<div class="report-summary-box">
+      <div class="report-summary-title">🎉 Kết quả tốt!</div>
+      <div class="report-focus-item"><div class="report-focus-dot"></div><div>Học sinh làm tốt tất cả dạng bài đã check.</div></div>
+    </div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+function getDiagnosis(qId) {
+  // Find which question type this belongs to
+  for (const group of TEACHER_DATA.questions) {
+    for (const item of group.items) {
+      if (item.id === qId) {
+        const type = group.type;
+        if (type.includes('TRUE') || type.includes('FALSE')) return 'Nhầm FALSE/NOT GIVEN';
+        if (type.includes('Multiple')) return 'Chọn distractor';
+        if (type.includes('Short')) return 'Sai từ / vượt giới hạn';
+        if (type.includes('Heading')) return 'Nhầm ý chính';
+        if (type.includes('Matching')) return 'Locate sai đoạn';
+        if (type.includes('Summary')) return 'Sai từ / paraphrase';
+        return 'Cần xem lại';
+      }
+    }
+  }
+  return '';
+}
+</script>
+</body>
+</html>
